@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Target, ShieldAlert, Zap, TrendingUp, TrendingDown } from "lucide-react";
 
 export default function TerminalPage() {
-    const { metrics, strategies } = useDashboardMetrics();
+    const { strategies } = useDashboardMetrics();
     const [selectedStrategy, setSelectedStrategy] = useState<any>(null);
 
     const activeTrades = strategies.filter((s: any) => s.position !== null);

@@ -28,8 +28,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { RefreshCw, Play, TrendingUp, AlertTriangle, Info, Square, ListChecks, Settings2, Heart, Brain, BarChart3, Target } from 'lucide-react';
-import { MetricsHeader } from '@/components/dashboard/MetricsHeader';
 import { AgentLog } from '@/components/dashboard/AgentLog';
 import {
     Tabs,
