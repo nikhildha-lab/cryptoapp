@@ -28,6 +28,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { RefreshCw, Play, TrendingUp, AlertTriangle, Info, Square, ListChecks, Settings2, Heart, Brain, Target } from 'lucide-react';
 import { AgentLog } from '@/components/dashboard/AgentLog';
 import {
     Tabs,
