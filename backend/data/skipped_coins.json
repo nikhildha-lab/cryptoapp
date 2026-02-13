@@ -1,0 +1,52 @@
+[
+  {
+    "symbol": "BTC/USDT",
+    "timeframe": "1h",
+    "strategy": "trend-momentum"
+  },
+  {
+    "symbol": "BTC/USDT",
+    "timeframe": "1h",
+    "strategy": "triple-confirmation"
+  },
+  {
+    "symbol": "BTC/USDT",
+    "timeframe": "1h",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "BTC/USDT",
+    "timeframe": "1h",
+    "strategy": "mean-reversion-pro"
+  },
+  {
+    "symbol": "BTC/USDT",
+    "timeframe": "1h",
+    "strategy": "volatility-scalper"
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timeframe": "1h",
+    "strategy": "trend-momentum"
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timeframe": "1h",
+    "strategy": "triple-confirmation"
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timeframe": "1h",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timeframe": "1h",
+    "strategy": "mean-reversion-pro"
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timeframe": "1h",
+    "strategy": "volatility-scalper"
+  }
+]

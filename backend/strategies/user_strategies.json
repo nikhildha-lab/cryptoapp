@@ -1,0 +1,165 @@
+[
+    {
+        "id": "volatility-scalper",
+        "name": "Volatility Scalper (BTC Base)",
+        "category": "Volatility",
+        "description": "Scalps target coin when its normalized ATR is > 1.5x BTC's normalized ATR. Uses EMA(5)/EMA(13) crossover for entries.",
+        "logic": {
+            "entry": "EMA(5) > EMA(13) AND coin_vol > 1.5 * btc_vol",
+            "exit": "EMA(5) < EMA(13) OR Stop Loss/Take Profit",
+            "stopLoss": "0.5%",
+            "takeProfit": "1.5%"
+        },
+        "params": {
+            "strategy": "volatility-scalper",
+            "symbol": "ETH/USDT",
+            "timeframe": "15m",
+            "vol_multiplier": 1.5,
+            "fast_ema": 5,
+            "slow_ema": 13,
+            "period": 14,
+            "overbought": 70,
+            "oversold": 30,
+            "stop_loss": 0.005,
+            "take_profit": 0.015
+        },
+        "optimalConditions": "High relative volatility compared to BTC (Altseason)",
+        "rating": "A",
+        "code": "import backtrader as bt\n\nclass VolatilityScalper(bt.Strategy):\n    \"\"\"\n    Scalping strategy that trades only when the target coin's volatility \n    is significantly higher than BTC's volatility (Relative Volatility Index).\n    \n    Logic:\n    1. Calculate ATR (Vol) for Target and BTC.\n    2. If Target_ATR_Ratio > BTC_ATR_Ratio * Multiplier, market is \"Hot\".\n    3. In \"Hot\" market, use tight EMA crossovers for scalping.\n    \"\"\"\n    \n    params = (\n        ('ltr_period', 14),\n        ('vol_multiplier', 1.5),\n        ('fast_ema', 5),\n        ('slow_ema', 13),\n        ('take_profit', 0.015), # 1.5%\n        ('stop_loss', 0.005),   # 0.5%\n    )\n    \n    # Flag for the runner to load BTC data\n    REQUIRES_BTC = True\n\n    def __init__(self):\n        # Data feeds\n        self.target = self.datas[0]\n        self.btc = self.datas[1] if len(self.datas) > 1 else None\n        \n        # Indicators\n        self.target_atr = bt.indicators.ATR(self.target, period=self.params.ltr_period)\n        self.target_ema_fast = bt.indicators.EMA(self.target, period=self.params.fast_ema)\n        self.target_ema_slow = bt.indicators.EMA(self.target, period=self.params.slow_ema)\n        \n        if self.btc:\n            self.btc_atr = bt.indicators.ATR(self.btc, period=self.params.ltr_period)\n            \n        self.crossover = bt.indicators.CrossOver(self.target_ema_fast, self.target_ema_slow)\n\n    def next(self):\n        if not self.position:\n            # Volatility Check\n            is_volatile = True\n            if self.btc:\n                # Normalized ATR (ATR / Price) to compare volatility across different price scales\n                target_norm_vol = self.target_atr[0] / self.target.close[0]\n                btc_norm_vol = self.btc_atr[0] / self.btc.close[0]\n                \n                # Condition: Target volatility must be X times higher than BTC\n                if target_norm_vol < (btc_norm_vol * self.params.vol_multiplier):\n                    is_volatile = False\n            \n            # Entry Logic: Fast crosses above Slow AND High Volatility\n            if self.crossover > 0 and is_volatile:\n                # Calculate size based on stop loss or fixed\n                self.buy()\n                self.entry_price = self.target.close[0]\n                \n        else:\n            # Exit Logic\n            # 1. Stop Loss\n            if self.target.close[0] < self.entry_price * (1 - self.params.stop_loss):\n                self.close()\n                \n            # 2. Take Profit\n            elif self.target.close[0] > self.entry_price * (1 + self.params.take_profit):\n                self.close()\n                \n            # 3. Crossunder (Trend reversal)\n            elif self.crossover < 0:\n                self.close()\n"
+    },
+    {
+        "id": "ndrt-strategy",
+        "name": "NDRT Trend Strategy",
+        "category": "Trend",
+        "description": "Fractal-based breakout with SAR & Trailing Stop. Auto-adjusts params for <= 4h vs > 4h timeframes.",
+        "logic": {
+            "entry": "High >= Top Buffer",
+            "exit": "Low <= Bottom Buffer (SAR) OR Trailing SL",
+            "stopLoss": "0.25% (<=4h) / 2% (>4h) Trailing",
+            "takeProfit": "N/A (SAR)"
+        },
+        "params": {
+            "strategy": "ndrt-strategy",
+            "symbol": "BTC/USDT",
+            "timeframe": "4h",
+            "buffer_percent": null,
+            "stop_loss_percent": null,
+            "use_trailing_stop": true,
+            "trailing_stop_percent": null
+        },
+        "optimalConditions": "Strong trending markets with clear fractals",
+        "rating": "A",
+        "code": "import backtrader as bt\n\nclass NDRTStrategy(bt.Strategy):\n    \"\"\"\n    NDRT_STA_V6 Trend Following Strategy\n    Converted from Pine Script with Enhancements.\n    \n    Logic:\n    - Identifies Tops/Bottoms based on 3-candle fractal (Lower-Higher-Lower).\n    - Create Buffer Zones (+/- %) around these Tops/Bottoms.\n    - Long on Top Buffer Breach.\n    - Short on Bottom Buffer Breach.\n    - Stop and Reverse (SAR) logic.\n    - Dynamic Buffer & Stop Loss based on Timeframe.\n    - Trailing Stop functionality.\n    \"\"\"\n    \n    params = (\n        ('buffer_percent', None), # None = Auto-detect based on timeframe\n        ('stop_loss_percent', None), # None = Auto-detect based on timeframe\n        ('use_trailing_stop', True),\n        ('trailing_stop_percent', None), # None = Auto-detect\n    )\n\n    def __init__(self):\n        self.last_top_close = None\n        self.last_bottom_close = None\n        self.last_top_index = -10\n        self.last_bottom_index = -10\n        \n        self.order = None\n        \n        # Trailing Stop State\n        self.highest_high = 0\n        self.lowest_low = float('inf')\n\n        # DEFAULT PARAMETERS LOGIC\n        # If params are None, set defaults based on timeframe\n        self.eff_buffer = self.params.buffer_percent\n        self.eff_sl = self.params.stop_loss_percent\n        self.eff_trail = self.params.trailing_stop_percent\n\n        # Determine if timeframe is <= 4 hours (240 mins)\n        # self.data._compression is usually the multiplier (e.g. 1, 5, 15, 60)\n        # self.data._timeframe is the unit (Minutes=1, Days=2, etc)\n        \n        is_low_tf = False\n        if self.data._timeframe == bt.TimeFrame.Minutes:\n            total_mins = self.data._compression\n            if total_mins <= 240:\n                is_low_tf = True\n        elif self.data._timeframe < bt.TimeFrame.Days: # Seconds, Microseconds\n             is_low_tf = True\n             \n        # Apply Defaults\n        if self.eff_buffer is None:\n            self.eff_buffer = 0.005 if is_low_tf else 1.0 # 0.005% or 1%\n            \n        if self.eff_sl is None:\n             # User said: \"hard SL can be trailed 0.25% FOR 4 AND BELOW... REST IT CAN BE 2%\"\n            self.eff_sl = 0.25 if is_low_tf else 2.0\n            \n        if self.eff_trail is None:\n            self.eff_trail = 0.25 if is_low_tf else 2.0\n\n    def next(self):\n        # We need at least 3 bars to detect pattern\n        if len(self) < 3:\n            return\n\n        c0 = self.data.close[0]\n        c1 = self.data.close[-1]\n        c2 = self.data.close[-2]\n        high0 = self.data.high[0]\n        low0 = self.data.low[0]\n        current_idx = len(self)\n\n        # --- Fractal Identification ---\n        is_top = (c1 > c2 and c1 > c0)\n        is_bottom = (c1 < c2 and c1 < c0)\n\n        if is_top and (self.last_top_index == -10 or (current_idx - self.last_top_index >= 2)):\n            self.last_top_close = c1\n            self.last_top_index = current_idx - 1\n            \n        if is_bottom and (self.last_bottom_index == -10 or (current_idx - self.last_bottom_index >= 2)):\n            self.last_bottom_close = c1\n            self.last_bottom_index = current_idx - 1\n\n        # --- Calculate Buffers ---\n        if self.last_top_close is None or self.last_bottom_close is None:\n            return\n\n        # Convert Percent to Multiplier\n        buffer_mult = self.eff_buffer / 100.0\n        stop_mult = self.eff_sl / 100.0\n        trail_mult = self.eff_trail / 100.0\n\n        top_buffer_val = self.last_top_close * (1 + buffer_mult)\n        bottom_buffer_val = self.last_bottom_close * (1 - buffer_mult)\n\n        # --- Detect Breaches ---\n        top_breached = (high0 >= top_buffer_val) and (current_idx - self.last_top_index >= 2)\n        bottom_breached = (low0 <= bottom_buffer_val) and (current_idx - self.last_bottom_index >= 2)\n        \n        # --- Trading Logic ---\n        pos_size = self.position.size\n        # avg_price = self.position.price # For fixed SL\n\n        # Entries\n        if pos_size == 0:\n            if top_breached:\n                self.buy() # Open Long\n                self.highest_high = high0 # Init trailing\n            elif bottom_breached:\n                self.sell() # Open Short\n                self.lowest_low = low0 # Init trailing\n                \n        elif pos_size > 0: # LONG\n            # Track Highest High for Trailing Stop\n            if high0 > self.highest_high:\n                self.highest_high = high0\n                \n            # Trailing Stop Calculation\n            trail_stop_price = self.highest_high * (1 - trail_mult)\n            \n            # SAR Logic (Reverse on Bottom Breach)\n            if bottom_breached:\n                self.close()\n                self.sell()\n                self.lowest_low = low0\n            \n            # Stop Loss (Trailing or Fixed Buffer logic from Pine)\n            # Pine logic: else if (longStopLoss > bottomBufferValue and low <= longStopLoss)\n            # We use our improved Trailing Logic OR the original logic?\n            # User said \"hard SL can be trailed\". Let's priority Trailing.\n            elif self.params.use_trailing_stop and (low0 <= trail_stop_price):\n                self.close() # Trailing SL Hit\n                \n            # Original Pine Fixed SL logic check (fallback if trail not hit? OR just replace?)\n            # \"longStopLoss > bottomBufferValue\" check is specific to avoiding premature SL if buffer is wide.\n            # Let's stick to the requested Trailing SL as primary exit if not SAR.\n\n        elif pos_size < 0: # SHORT\n            # Track Lowest Low\n            if low0 < self.lowest_low:\n                self.lowest_low = low0\n                \n            trail_stop_price = self.lowest_low * (1 + trail_mult)\n\n            if top_breached:\n                self.close()\n                self.buy()\n                self.highest_high = high0\n                \n            elif self.params.use_trailing_stop and (high0 >= trail_stop_price):\n                self.close() # Trailing SL Hit\n"
+    },
+    {
+        "id": "triple-confirmation",
+        "name": "Triple Confirmation",
+        "category": "Multi-Indicator",
+        "description": "High-probability strategy combining RSI, MACD, and Volume confirmation.",
+        "logic": {
+            "entry": "RSI Oversold + MACD Bullish + Volume Spike",
+            "exit": "RSI Overbought OR MACD Bearish",
+            "stopLoss": "2%",
+            "takeProfit": "5%"
+        },
+        "params": {
+            "strategy": "triple-confirmation",
+            "symbol": "BTC/USDT",
+            "timeframe": "1h",
+            "rsi_period": 14,
+            "rsi_oversold": 30,
+            "rsi_overbought": 70,
+            "macd_fast": 12,
+            "macd_slow": 26,
+            "macd_signal": 9,
+            "volume_multiplier": 2.0,
+            "stop_loss": 0.02,
+            "take_profit": 0.05
+        },
+        "optimalConditions": "Clean trending markets with volume",
+        "rating": "A",
+        "code": "import backtrader as bt\nfrom .base import BaseStrategy\n\nclass TripleConfirmationStrategy(BaseStrategy):\n    params = (\n        ('rsi_period', 14),\n        ('rsi_oversold', 30),\n        ('rsi_overbought', 70),\n        ('macd_fast', 12),\n        ('macd_slow', 26),\n        ('macd_signal', 9),\n        ('volume_multiplier', 2.0),\n        ('stop_loss', 0.02),\n        ('take_profit', 0.05),\n    )\n\n    def __init__(self):\n        super().__init__()\n        self.rsi = bt.indicators.RSI(self.data.close, period=self.params.rsi_period)\n        self.macd = bt.indicators.MACD(\n            self.data.close,\n            period_me1=self.params.macd_fast,\n            period_me2=self.params.macd_slow,\n            period_signal=self.params.macd_signal\n        )\n        self.volume_sma = bt.indicators.SMA(self.data.volume, period=20)\n        \n    def next(self):\n        super().next()\n        \n        if not self.position:\n            rsi_oversold = self.rsi < self.params.rsi_oversold\n            rsi_overbought = self.rsi > self.params.rsi_overbought\n            \n            macd_bullish = self.macd.macd > self.macd.signal\n            macd_bearish = self.macd.macd < self.macd.signal\n            \n            volume_spike = self.data.volume > self.volume_sma * self.params.volume_multiplier\n            sufficient_liquidity = self.data.volume > self.volume_sma * 0.8\n            \n            if rsi_oversold and macd_bullish and volume_spike and sufficient_liquidity:\n                self.buy()\n            elif rsi_overbought and macd_bearish and volume_spike and sufficient_liquidity:\n                self.sell()\n        else:\n            if self.position.size > 0:\n                if self.rsi > self.params.rsi_overbought or self.macd.macd < self.macd.signal:\n                    self.close()\n            elif self.position.size < 0:\n                if self.rsi < self.params.rsi_oversold or self.macd.macd > self.macd.signal:\n                    self.close()\n"
+    },
+    {
+        "id": "trend-momentum",
+        "name": "Trend Momentum",
+        "category": "Trend",
+        "description": "Trend-following with momentum confirmation (EMA + Stoch + ADX).",
+        "logic": {
+            "entry": "Price > EMA + Stoch Oversold Cross + ADX > 25",
+            "exit": "Price < EMA OR Stoch Overbought",
+            "stopLoss": "2.5%",
+            "takeProfit": "6%"
+        },
+        "params": {
+            "strategy": "trend-momentum",
+            "symbol": "SOL/USDT",
+            "timeframe": "1h",
+            "ema_fast": 8,
+            "ema_slow": 21,
+            "stoch_period": 14,
+            "stoch_oversold": 20,
+            "stoch_overbought": 80,
+            "adx_period": 14,
+            "adx_threshold": 25,
+            "stop_loss": 0.025,
+            "take_profit": 0.06
+        },
+        "optimalConditions": "Strong trending markets",
+        "rating": "B",
+        "code": "import backtrader as bt\nfrom .base import BaseStrategy\n\nclass TrendMomentumStrategy(BaseStrategy):\n    params = (\n        ('ema_fast', 8),\n        ('ema_slow', 21),\n        ('stoch_period', 14),\n        ('stoch_oversold', 20),\n        ('stoch_overbought', 80),\n        ('adx_period', 14),\n        ('adx_threshold', 25),\n        ('stop_loss', 0.025),\n        ('take_profit', 0.06),\n    )\n\n    def __init__(self):\n        super().__init__()\n        self.ema_fast = bt.indicators.EMA(self.data.close, period=self.params.ema_fast)\n        self.ema_slow = bt.indicators.EMA(self.data.close, period=self.params.ema_slow)\n        self.stoch = bt.indicators.Stochastic(self.data, period=self.params.stoch_period)\n        self.adx = bt.indicators.ADX(self.data, period=self.params.adx_period)\n        \n    def next(self):\n        super().next()\n        \n        if not self.position:\n            price_above_ema = self.data.close > self.ema_fast > self.ema_slow\n            price_below_ema = self.data.close < self.ema_fast < self.ema_slow\n            \n            stoch_oversold_cross = self.stoch.percK[-1] < self.params.stoch_oversold and self.stoch.percK > self.stoch.percD\n            stoch_overbought_cross = self.stoch.percK[-1] > self.params.stoch_overbought and self.stoch.percK < self.stoch.percD\n            \n            strong_trend = self.adx > self.params.adx_threshold\n            \n            if price_above_ema and stoch_oversold_cross and strong_trend:\n                self.buy()\n            elif price_below_ema and stoch_overbought_cross and strong_trend:\n                self.sell()\n        else:\n            weak_trend = self.adx < 20\n            if self.position.size > 0:\n                if self.data.close < self.ema_fast or self.stoch.percK > self.params.stoch_overbought or weak_trend:\n                    self.close()\n            elif self.position.size < 0:\n                if self.data.close > self.ema_fast or self.stoch.percK < self.params.stoch_oversold or weak_trend:\n                    self.close()\n"
+    },
+    {
+        "id": "mean-reversion-pro",
+        "name": "Mean Reversion Pro",
+        "category": "Mean Reversion",
+        "description": "Advanced mean reversion with triple oscillator confirmation.",
+        "logic": {
+            "entry": "RSI < 30 + Price at Lower BB + Williams %R < -80",
+            "exit": "RSI > 70 OR Price at Upper BB",
+            "stopLoss": "2%",
+            "takeProfit": "5%"
+        },
+        "params": {
+            "strategy": "mean-reversion-pro",
+            "symbol": "BTC/USDT",
+            "timeframe": "1h",
+            "rsi_period": 14,
+            "rsi_oversold": 30,
+            "rsi_overbought": 70,
+            "bb_period": 20,
+            "bb_devfactor": 2.0,
+            "williams_period": 14,
+            "williams_oversold": -80,
+            "stop_loss": 0.02,
+            "take_profit": 0.05
+        },
+        "optimalConditions": "Ranging markets with high oscillator sensitivity",
+        "rating": "B",
+        "code": "import backtrader as bt\nfrom .base import BaseStrategy\n\nclass MeanReversionProStrategy(BaseStrategy):\n    params = (\n        ('rsi_period', 14),\n        ('rsi_oversold', 30),\n        ('rsi_overbought', 70),\n        ('bb_period', 20),\n        ('bb_devfactor', 2.0),\n        ('williams_period', 14),\n        ('williams_oversold', -80),\n        ('stop_loss', 0.02),\n        ('take_profit', 0.05),\n    )\n\n    def __init__(self):\n        super().__init__()\n        self.rsi = bt.indicators.RSI(self.data.close, period=self.params.rsi_period)\n        self.bb = bt.indicators.BollingerBands(\n            self.data.close,\n            period=self.params.bb_period,\n            devfactor=self.params.bb_devfactor\n        )\n        self.williams = bt.indicators.WilliamsR(self.data, period=self.params.williams_period)\n        \n    def next(self):\n        super().next()\n        \n        if not self.position:\n            rsi_oversold = self.rsi < self.params.rsi_oversold\n            rsi_overbought = self.rsi > self.params.rsi_overbought\n            \n            at_lower_bb = self.data.close <= self.bb.bot\n            at_upper_bb = self.data.close >= self.bb.top\n            \n            williams_oversold = self.williams < self.params.williams_oversold\n            williams_overbought = self.williams > -20\n            \n            if rsi_oversold and at_lower_bb and williams_oversold:\n                self.buy()\n            elif rsi_overbought and at_upper_bb and williams_overbought:\n                self.sell()\n        else:\n            if self.position.size > 0:\n                if self.rsi > self.params.rsi_overbought or self.data.close >= self.bb.top:\n                    self.close()\n            elif self.position.size < 0:\n                if self.rsi < self.params.rsi_oversold or self.data.close <= self.bb.bot:\n                    self.close()\n"
+    },
+    {
+        "id": "ai-agent-pro",
+        "name": "AI Agent Pro (LLM)",
+        "category": "AI",
+        "description": "Uses GPT-4o / Gemini 2.0 to analyze market structure and sentiment.",
+        "logic": {
+            "entry": "LLM Analysis > 75% Confidence BUY",
+            "exit": "LLM Analysis > 75% Confidence SELL",
+            "stopLoss": "Dynamic (AI)",
+            "takeProfit": "Dynamic (AI)"
+        },
+        "params": {
+            "strategy": "ai-agent-pro",
+            "type": "AI_AGENT",
+            "symbol": "BTC/USDT",
+            "timeframe": "1h",
+            "min_confidence": 75,
+            "stop_loss": 0.02,
+            "take_profit": 0.05
+        },
+        "optimalConditions": "All market conditions (Adaptive)",
+        "rating": "A+",
+        "code": "# AI Strategy Logic handled by backend/ai_agent.py\n# This entry enables frontend configuration."
+    }
+]

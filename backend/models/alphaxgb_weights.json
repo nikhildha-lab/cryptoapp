@@ -1,0 +1,481 @@
+{
+  "version": "1.1.0-lightweight",
+  "last_trained": "2026-02-14T00:41:03.401358",
+  "total_samples": 227,
+  "weights": {
+    "mean-reversion-pro|ADA/USDT|15m": {
+      "score": -100.0,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -10.9
+    },
+    "mean-reversion-pro|ADA/USDT|3m": {
+      "score": 3.9078,
+      "trades": 3,
+      "winRate": 0.67,
+      "avgPnL": -2.95
+    },
+    "mean-reversion-pro|ADA/USDT|5m": {
+      "score": -4.485,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -10.21
+    },
+    "mean-reversion-pro|APT/USDT|3m": {
+      "score": 4.5911,
+      "trades": 1,
+      "winRate": 1.0,
+      "avgPnL": 1.56
+    },
+    "mean-reversion-pro|APT/USDT|5m": {
+      "score": 7.5215,
+      "trades": 2,
+      "winRate": 1.0,
+      "avgPnL": 2.12
+    },
+    "mean-reversion-pro|ARB/USDT|3m": {
+      "score": 6.9761,
+      "trades": 2,
+      "winRate": 1.0,
+      "avgPnL": 0.87
+    },
+    "mean-reversion-pro|AVAX/USDT|30m": {
+      "score": -100.0,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -10.0
+    },
+    "mean-reversion-pro|AVAX/USDT|3m": {
+      "score": 1.7658,
+      "trades": 4,
+      "winRate": 0.5,
+      "avgPnL": -4.76
+    },
+    "mean-reversion-pro|AVAX/USDT|4h": {
+      "score": -2.9169,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -10.52
+    },
+    "mean-reversion-pro|AVAX/USDT|5m": {
+      "score": -0.2331,
+      "trades": 3,
+      "winRate": 0.33,
+      "avgPnL": -5.42
+    },
+    "mean-reversion-pro|BONK/USDT|3m": {
+      "score": 7.1835,
+      "trades": 2,
+      "winRate": 1.0,
+      "avgPnL": 1.35
+    },
+    "mean-reversion-pro|BTC/USDT|15m": {
+      "score": -100.0,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -10.11
+    },
+    "mean-reversion-pro|BTC/USDT|30m": {
+      "score": -100.0,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -10.07
+    },
+    "mean-reversion-pro|BTC/USDT|3m": {
+      "score": 7.5395,
+      "trades": 5,
+      "winRate": 0.8,
+      "avgPnL": -1.48
+    },
+    "mean-reversion-pro|BTC/USDT|5m": {
+      "score": -4.5848,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -10.43
+    },
+    "mean-reversion-pro|DOGE/USDT|30m": {
+      "score": -100.0,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -10.48
+    },
+    "mean-reversion-pro|DOGE/USDT|3m": {
+      "score": 12.5077,
+      "trades": 3,
+      "winRate": 1.0,
+      "avgPnL": 7.56
+    },
+    "mean-reversion-pro|DOGE/USDT|4h": {
+      "score": -2.4068,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -5.48
+    },
+    "mean-reversion-pro|DOGE/USDT|5m": {
+      "score": -4.8162,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -10.96
+    },
+    "mean-reversion-pro|DOT/USDT|15m": {
+      "score": -100.0,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -10.02
+    },
+    "mean-reversion-pro|DOT/USDT|30m": {
+      "score": -100.0,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -10.4
+    },
+    "mean-reversion-pro|DOT/USDT|3m": {
+      "score": 7.7019,
+      "trades": 10,
+      "winRate": 0.6,
+      "avgPnL": -0.97
+    },
+    "mean-reversion-pro|DOT/USDT|5m": {
+      "score": -0.1623,
+      "trades": 3,
+      "winRate": 0.33,
+      "avgPnL": -5.29
+    },
+    "mean-reversion-pro|ETH/USDT|15m": {
+      "score": -100.0,
+      "trades": 3,
+      "winRate": 0.0,
+      "avgPnL": -10.25
+    },
+    "mean-reversion-pro|ETH/USDT|30m": {
+      "score": -100.0,
+      "trades": 4,
+      "winRate": 0.0,
+      "avgPnL": -11.14
+    },
+    "mean-reversion-pro|ETH/USDT|3m": {
+      "score": 6.7541,
+      "trades": 4,
+      "winRate": 0.75,
+      "avgPnL": -0.76
+    },
+    "mean-reversion-pro|LDO/USDT|3m": {
+      "score": 7.044,
+      "trades": 2,
+      "winRate": 1.0,
+      "avgPnL": 1.03
+    },
+    "mean-reversion-pro|LINK/USDT|15m": {
+      "score": -100.0,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -10.47
+    },
+    "mean-reversion-pro|LINK/USDT|30m": {
+      "score": -100.0,
+      "trades": 4,
+      "winRate": 0.0,
+      "avgPnL": -10.72
+    },
+    "mean-reversion-pro|LINK/USDT|3m": {
+      "score": -100.0,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -10.58
+    },
+    "mean-reversion-pro|LINK/USDT|5m": {
+      "score": -100.0,
+      "trades": 5,
+      "winRate": 0.2,
+      "avgPnL": -8.04
+    },
+    "mean-reversion-pro|SOL/USDT|15m": {
+      "score": -100.0,
+      "trades": 4,
+      "winRate": 0.0,
+      "avgPnL": -10.57
+    },
+    "mean-reversion-pro|SOL/USDT|30m": {
+      "score": -100.0,
+      "trades": 6,
+      "winRate": 0.0,
+      "avgPnL": -10.18
+    },
+    "mean-reversion-pro|SOL/USDT|3m": {
+      "score": -100.0,
+      "trades": 2,
+      "winRate": 1.0,
+      "avgPnL": 1.02
+    },
+    "mean-reversion-pro|SOL/USDT|5m": {
+      "score": -100.0,
+      "trades": 4,
+      "winRate": 0.0,
+      "avgPnL": -10.8
+    },
+    "mean-reversion-pro|XRP/USDT|15m": {
+      "score": -100.0,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -10.47
+    },
+    "mean-reversion-pro|XRP/USDT|30m": {
+      "score": -100.0,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -10.11
+    },
+    "mean-reversion-pro|XRP/USDT|3m": {
+      "score": 1.4608,
+      "trades": 4,
+      "winRate": 0.5,
+      "avgPnL": -5.23
+    },
+    "mean-reversion-pro|XRP/USDT|5m": {
+      "score": -5.9723,
+      "trades": 3,
+      "winRate": 0.0,
+      "avgPnL": -10.77
+    },
+    "ndrt-strategy|1000SATS/USDT|5m": {
+      "score": 6.6305,
+      "trades": 2,
+      "winRate": 1.0,
+      "avgPnL": 0.09
+    },
+    "ndrt-strategy|ADA/USDT|1h": {
+      "score": -0.5476,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -1.25
+    },
+    "ndrt-strategy|ADA/USDT|3m": {
+      "score": -0.2376,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -0.54
+    },
+    "ndrt-strategy|ADA/USDT|5m": {
+      "score": -0.2035,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -0.46
+    },
+    "ndrt-strategy|APT/USDT|3m": {
+      "score": -0.7812,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -1.78
+    },
+    "ndrt-strategy|ARB/USDT|3m": {
+      "score": -0.4046,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -0.92
+    },
+    "ndrt-strategy|AVAX/USDT|1h": {
+      "score": -0.4371,
+      "trades": 3,
+      "winRate": 0.0,
+      "avgPnL": -0.79
+    },
+    "ndrt-strategy|AVAX/USDT|3m": {
+      "score": 9.9131,
+      "trades": 4,
+      "winRate": 1.0,
+      "avgPnL": 0.4
+    },
+    "ndrt-strategy|BTC/USDT|3m": {
+      "score": 7.9051,
+      "trades": 6,
+      "winRate": 0.67,
+      "avgPnL": 0.16
+    },
+    "ndrt-strategy|BTC/USDT|5m": {
+      "score": -0.0581,
+      "trades": 3,
+      "winRate": 0.0,
+      "avgPnL": -0.1
+    },
+    "ndrt-strategy|DOGE/USDT|5m": {
+      "score": -0.2867,
+      "trades": 5,
+      "winRate": 0.0,
+      "avgPnL": -0.4
+    },
+    "ndrt-strategy|ETH/USDT|15m": {
+      "score": -100.0,
+      "trades": 4,
+      "winRate": 0.0,
+      "avgPnL": -0.39
+    },
+    "ndrt-strategy|ETH/USDT|5m": {
+      "score": -0.2782,
+      "trades": 3,
+      "winRate": 0.0,
+      "avgPnL": -0.5
+    },
+    "ndrt-strategy|FET/USDT|5m": {
+      "score": 6.7602,
+      "trades": 2,
+      "winRate": 1.0,
+      "avgPnL": 0.38
+    },
+    "ndrt-strategy|IMX/USDT|3m": {
+      "score": 3.8265,
+      "trades": 6,
+      "winRate": 0.33,
+      "avgPnL": -0.08
+    },
+    "ndrt-strategy|IMX/USDT|5m": {
+      "score": -0.1938,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -0.44
+    },
+    "ndrt-strategy|LINK/USDT|3m": {
+      "score": -0.2635,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -0.6
+    },
+    "ndrt-strategy|LINK/USDT|5m": {
+      "score": -0.3697,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -0.84
+    },
+    "ndrt-strategy|OP/USDT|3m": {
+      "score": -0.2468,
+      "trades": 3,
+      "winRate": 0.0,
+      "avgPnL": -0.45
+    },
+    "ndrt-strategy|OP/USDT|5m": {
+      "score": -0.2454,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -0.56
+    },
+    "ndrt-strategy|ORDI/USDT|3m": {
+      "score": -0.5085,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -1.16
+    },
+    "ndrt-strategy|PEPE/USDT|30m": {
+      "score": -100.0,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -2.2
+    },
+    "ndrt-strategy|PEPE/USDT|3m": {
+      "score": -0.3602,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -0.82
+    },
+    "ndrt-strategy|SHIB/USDT|3m": {
+      "score": -0.2949,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -0.67
+    },
+    "ndrt-strategy|SUI/USDT|3m": {
+      "score": 6.6518,
+      "trades": 5,
+      "winRate": 0.6,
+      "avgPnL": 0.28
+    },
+    "ndrt-strategy|TIA/USDT|3m": {
+      "score": 3.9402,
+      "trades": 6,
+      "winRate": 0.33,
+      "avgPnL": 0.06
+    },
+    "ndrt-strategy|TIA/USDT|5m": {
+      "score": -0.2383,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -0.54
+    },
+    "ndrt-strategy|XRP/USDT|3m": {
+      "score": 9.7185,
+      "trades": 4,
+      "winRate": 1.0,
+      "avgPnL": 0.1
+    },
+    "ndrt-strategy|XRP/USDT|5m": {
+      "score": -0.4262,
+      "trades": 4,
+      "winRate": 0.0,
+      "avgPnL": -0.66
+    },
+    "trend-momentum|BTC/USDT|15m": {
+      "score": -100.0,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -10.45
+    },
+    "trend-momentum|DOGE/USDT|3m": {
+      "score": 7.0564,
+      "trades": 4,
+      "winRate": 0.5,
+      "avgPnL": 3.46
+    },
+    "trend-momentum|ETH/USDT|5m": {
+      "score": -2.8061,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -10.12
+    },
+    "trend-momentum|INJ/USDT|3m": {
+      "score": 6.6935,
+      "trades": 2,
+      "winRate": 1.0,
+      "avgPnL": 0.23
+    },
+    "trend-momentum|LINK/USDT|5m": {
+      "score": 6.8405,
+      "trades": 2,
+      "winRate": 1.0,
+      "avgPnL": 0.57
+    },
+    "trend-momentum|SOL/USDT|3m": {
+      "score": -4.4108,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -10.04
+    },
+    "triple-confirmation|BTC/USDT|5m": {
+      "score": -2.8369,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -10.23
+    },
+    "triple-confirmation|DOGE/USDT|15m": {
+      "score": -100.0,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -11.46
+    },
+    "triple-confirmation|DOGE/USDT|30m": {
+      "score": -100.0,
+      "trades": 1,
+      "winRate": 0.0,
+      "avgPnL": -10.95
+    },
+    "volatility-scalper|1000SATS/USDT|5m": {
+      "score": -0.1943,
+      "trades": 2,
+      "winRate": 0.0,
+      "avgPnL": -0.44
+    },
+    "volatility-scalper|SOL/USDT|3m": {
+      "score": 4.8819,
+      "trades": 16,
+      "winRate": 0.12,
+      "avgPnL": 2.43
+    }
+  }
+}
