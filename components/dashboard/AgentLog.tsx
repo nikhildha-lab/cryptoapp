@@ -111,7 +111,9 @@ export function AgentLog() {
                             )}
                             {feedHealth?.feeds && (
                                 <span className="text-[10px] font-mono text-muted-foreground/60">
-                                    avg: {Math.round(Object.values(feedHealth.feeds).reduce((acc: number, f: any) => acc + (f.latency_ms || 0), 0) / Object.values(feedHealth.feeds).length)}ms
+                                    avg: {feedHealth?.feeds && Object.values(feedHealth.feeds).length > 0
+                                        ? Math.round(Object.values(feedHealth.feeds).reduce((acc: number, f: any) => acc + (f.latency_ms || 0), 0) / Object.values(feedHealth.feeds).length)
+                                        : 0}ms
                                 </span>
                             )}
                         </div>

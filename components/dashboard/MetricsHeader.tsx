@@ -76,7 +76,13 @@ export function useDashboardMetrics() {
             }
 
             if (data.strategies) {
-                setStrategies(data.strategies);
+                const mapped = data.strategies.map((s: any) => ({
+                    ...s,
+                    entryPrice: s.entry_price,
+                    unrealizedPnL: s.unrealized_pnl,
+                    pnlPerc: s.pnl_perc
+                }));
+                setStrategies(mapped);
             }
 
 
