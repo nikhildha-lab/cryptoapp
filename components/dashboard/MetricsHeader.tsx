@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowUpRight, ArrowDownRight, Activity, Wallet, Percent, TrendingUp, RefreshCw, Hash, Zap } from "lucide-react";
+import { Wallet, RefreshCw, Hash, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
