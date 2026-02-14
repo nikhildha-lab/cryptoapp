@@ -244,6 +244,7 @@ class ExecutionEngine:
         target_exchange = exchange_id or 'binance'
         start_time = time.time()
         attempts = 3
+        
         for i in range(attempts):
             try:
                 adapter = self.get_adapter(target_exchange)
@@ -261,7 +262,16 @@ class ExecutionEngine:
                     return df
                 return None
             except Exception as e:
-                err_msg = str(e)
+                err_msg = str(e).lower()
+                
+                # Handle Regional Restrictions (HTTP 451)
+                if target_exchange == 'binance' and ('451' in err_msg or 'restricted' in err_msg):
+                    self.log("Exchange", f"⚠️ Binance restricted in this region. Falling back to Bybit for {symbol}...", "warning")
+                    target_exchange = 'bybit'
+                    # Reset timer for the fallback attempt
+                    start_time = time.time()
+                    continue
+                
                 if i < attempts - 1:
                     time.sleep(1) # Wait 1s and retry
                     continue
