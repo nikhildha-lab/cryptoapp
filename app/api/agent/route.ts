@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json(parsed);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Agent API Error:', error);
         return NextResponse.json(
             { error: 'Internal Server Error', details: error.message },

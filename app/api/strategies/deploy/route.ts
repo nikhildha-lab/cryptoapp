@@ -77,7 +77,7 @@ export async function POST(req: Request) {
             ids: newIds
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Deploy Error:", error);
         return NextResponse.json({ success: false, error: "Failed to deploy strategy" }, { status: 500 });
     }

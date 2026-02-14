@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ results });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Bulk Backtest API Error:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },
