@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ interface DeploymentRow {
 const AVAILABLE_COINS = ["BTC/USDT", "ETH/USDT", "SOL/USDT", "BNB/USDT", "AVAX/USDT", "ADA/USDT", "MATIC/USDT", "DOT/USDT"];
 const AVAILABLE_TIMEFRAMES = ["1m", "3m", "5m", "15m", "1h", "4h", "1d"];
 
-export default function DeployPage() {
+function DeployForm() {
     const router = useRouter();
 
     // Global Settings
@@ -473,5 +473,20 @@ export default function DeployPage() {
                 </Table>
             </Card>
         </div>
+    );
+}
+
+export default function DeployPage() {
+    return (
+        <Suspense fallback={
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="text-center space-y-4">
+                    <CheckCircle2 className="h-8 w-8 animate-pulse mx-auto text-primary" />
+                    <p className="text-muted-foreground animate-pulse">Initializing Deployment Engine...</p>
+                </div>
+            </div>
+        }>
+            <DeployForm />
+        </Suspense>
     );
 }
