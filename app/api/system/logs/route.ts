@@ -13,7 +13,7 @@ export async function GET() {
         const fileContent = fs.readFileSync(LOGS_FILE, 'utf-8');
         const logs = JSON.parse(fileContent);
         return NextResponse.json({ logs });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to read logs", error);
         return NextResponse.json({ logs: [] });
     }
@@ -53,7 +53,7 @@ export async function DELETE() {
         }
 
         return NextResponse.json({ success: true, message: "Logs archived and view reset" });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to archive logs", error);
         return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
     }

@@ -56,7 +56,7 @@ export async function GET() {
             health.strategies = { status: 'error', count: 0, message: 'user_strategies.json Missing' };
         }
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Health check failed:", error);
         health.system = { status: 'error', message: 'Internal Check Failed' };
     }

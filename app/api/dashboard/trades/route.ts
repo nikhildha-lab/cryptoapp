@@ -23,7 +23,7 @@ export async function GET(request: Request) {
         }
 
         return NextResponse.json({ success: true, trades });
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ success: false, error: "Failed to fetch trades" }, { status: 500 });
     }
 }
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
             fs.writeFileSync(TRADES_FILE, JSON.stringify([]), 'utf-8');
         }
         return NextResponse.json({ success: true, message: "Logs reset successfully" });
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ success: false, error: "Failed to reset trades" }, { status: 500 });
     }
 }

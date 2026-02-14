@@ -95,7 +95,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({ error: 'Strategy source code not found' }, { status: 404 });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching strategy code:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },

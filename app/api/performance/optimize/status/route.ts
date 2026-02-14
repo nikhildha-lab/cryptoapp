@@ -14,7 +14,7 @@ export async function GET() {
         } else {
             return NextResponse.json({ status: "idle" });
         }
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ status: "idle", error: "Failed to read status" });
     }
 }

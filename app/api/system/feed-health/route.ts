@@ -18,7 +18,7 @@ export async function GET() {
         const data = JSON.parse(content);
 
         return NextResponse.json({ success: true, ...data });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Feed Health API Error:", error);
         return NextResponse.json({ success: false, error: "Failed to load feed health" }, { status: 500 });
     }

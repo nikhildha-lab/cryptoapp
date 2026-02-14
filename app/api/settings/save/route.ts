@@ -64,7 +64,7 @@ export async function POST(req: Request) {
         fs.writeFileSync(envFilePath, newContent, 'utf-8');
 
         return NextResponse.json({ success: true, message: "Configuration saved successfully. You may need to restart the server for changes to take full effect in all modules." });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to save settings:", error);
         return NextResponse.json({ error: "Failed to save settings" }, { status: 500 });
     }

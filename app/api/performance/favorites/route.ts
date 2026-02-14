@@ -17,7 +17,7 @@ export async function GET() {
         }
         const data = fs.readFileSync(FAVORITES_FILE, "utf-8");
         return NextResponse.json({ success: true, favorites: JSON.parse(data) });
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ success: false, error: "Failed to load favorites" }, { status: 500 });
     }
 }
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: true, message: "Added to favorites", action: "added" });
         }
 
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ success: false, error: "Failed to update favorites" }, { status: 500 });
     }
 }

@@ -31,7 +31,7 @@ export async function GET() {
         const allStrategies = Array.from(strategyMap.values());
 
         return NextResponse.json(allStrategies);
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error fetching strategies:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },

@@ -34,7 +34,7 @@ export async function GET() {
 
         return NextResponse.json(result);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to fetch Fear & Greed Index:", error);
 
         return NextResponse.json(

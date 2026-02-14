@@ -143,7 +143,7 @@ export async function GET() {
             strategies: activeStrategies
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Dashboard data fetch failed:", error);
         return NextResponse.json({ error: "Failed to fetch dashboard data" }, { status: 500 });
     }

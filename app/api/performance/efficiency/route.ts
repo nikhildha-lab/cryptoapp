@@ -19,7 +19,7 @@ export async function GET() {
         const report = JSON.parse(content);
 
         return NextResponse.json({ success: true, report });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Efficiency API Error:", error);
         return NextResponse.json({ success: false, error: "Failed to load efficiency report" }, { status: 500 });
     }

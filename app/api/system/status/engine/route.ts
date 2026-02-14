@@ -29,7 +29,7 @@ export async function GET() {
             secondsAgo: Math.floor(diffSeconds)
         });
 
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ online: false, error: "Failed to check status" });
     }
 }
@@ -51,7 +51,7 @@ export async function POST() {
         });
 
         return NextResponse.json({ success: true, message: "Engine start command issued" });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to start engine:", error);
         return NextResponse.json({ success: false, error: "Failed to start engine" }, { status: 500 });
     }

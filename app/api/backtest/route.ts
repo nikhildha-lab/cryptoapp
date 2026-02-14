@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Backtest API Error:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },

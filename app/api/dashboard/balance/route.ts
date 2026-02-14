@@ -15,7 +15,7 @@ export async function GET() {
         } else {
             return NextResponse.json({ error: "Balance data unavailable" }, { status: 404 });
         }
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ success: false, error: "Failed to fetch balance" }, { status: 500 });
     }
 }

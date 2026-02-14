@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(data);
 
-    } catch (error) {
+    } catch (error: any) {
         console.error(`Failed to fetch data for ${symbol}:`, error);
 
         return NextResponse.json({ error: "Market data unavailable" }, { status: 500 });

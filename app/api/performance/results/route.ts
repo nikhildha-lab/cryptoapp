@@ -15,7 +15,7 @@ export async function GET() {
         const results = JSON.parse(content);
 
         return NextResponse.json({ success: true, results });
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ success: false, error: "Failed to load results" }, { status: 500 });
     }
 }

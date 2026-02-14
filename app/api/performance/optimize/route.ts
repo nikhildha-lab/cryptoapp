@@ -116,7 +116,7 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true, message: "Optimization task spawned" });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Optimization trigger failed:", error);
         appendLog("Failed to trigger optimization engine", "error");
         return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
@@ -157,7 +157,7 @@ export async function DELETE() {
         }
 
         return NextResponse.json({ success: false, message: "No running process found" });
-    } catch (error) {
+    } catch (error: any) {
         return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
     }
 }

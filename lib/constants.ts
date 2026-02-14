@@ -19,6 +19,7 @@ export interface Strategy {
         riskLevel?: string;
         bestSymbols?: string[];
     };
+    code?: string;
 }
 
 export const EXCHANGES = [

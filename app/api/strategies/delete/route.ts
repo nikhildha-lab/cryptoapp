@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
 
         return NextResponse.json({ success: true, message: 'Strategy deleted successfully' });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error deleting strategy:', error);
         return NextResponse.json(
             { error: 'Internal Server Error' },

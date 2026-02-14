@@ -20,7 +20,7 @@ export async function GET() {
         } else {
             return NextResponse.json({ content: "# Audit Plan Not Found\n\nThe file could not be located." });
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error("Failed to read audit plan", error);
         return NextResponse.json({ content: "Error reading audit plan." });
     }
