@@ -48,6 +48,7 @@ class ExecutionEngine:
         
         # Initialize AI Agent
         self.ai_agent = AIAgent()
+        self.last_ml_training = datetime.now() - timedelta(hours=2) # Force training on start
         
         self.log("System", "Execution Engine Initialized (Multi-Exchange Mode)")
 
@@ -699,6 +700,8 @@ class ExecutionEngine:
 
         except Exception as e:
             self.log("Execution", f"Exit execution failed for {sid}: {e}", "error")
+
+    def fetch_and_save_balance(self):
         try:
             total_output = {
                 "timestamp": datetime.now().isoformat(),
@@ -731,8 +734,8 @@ class ExecutionEngine:
                             total_output["total_value_usdt"] += filtered_bal.get('USDT', 0)
                         break # Success, exit retry loop
                     except Exception as e:
-                        if attempt == 2:
-                            self.log("System", f"Failed to fetch balance for {ex_id} after 3 attempts: {e}", "warning")
+                        if attempt == 1: # Fixed logical bug here too: attempt is 0, 1
+                            self.log("System", f"Failed to fetch balance for {ex_id} after retries: {e}", "warning")
                         else:
                             time.sleep(1) # Wait 1s before retry
 

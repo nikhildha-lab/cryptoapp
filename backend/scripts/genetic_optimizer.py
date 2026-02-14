@@ -283,6 +283,7 @@ class GeneticOptimizer:
         if tp_extension_factor > 0 and raw_pnl > 0:
             raw_pnl *= 1.05 # 5% bonus for target scaling
             
+        pnl = raw_pnl
         if np.isnan(pnl): pnl = -10.0
         
         # --- AlphaXGB PREDICTIVE BOOST ---
@@ -407,7 +408,7 @@ class GeneticOptimizer:
             logger.warning(f"  ❌ Failed | PnL: {test_pnl:.0f}% (Train: {best_train_pnl:.0f}%)")
             return None
 
-    def run_all(self):
+    def run_all(self, leverage=5):
         results = {}
         report = []
         strategies_to_optimize = [
@@ -655,7 +656,7 @@ if __name__ == "__main__":
             timeframes=args.tfs
         )
     elif args.command == 'all':
-        opt.run_all()
+        opt.run_all(leverage=args.lev)
     else:
         # Assume command is strategyId
         opt.run_optimization(args.command)
