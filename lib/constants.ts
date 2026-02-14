@@ -15,9 +15,10 @@ export interface Strategy {
     deployment?: {
         recommendedCapital?: number;
         leverage?: string;
-        minCapital?: string;
+        minCapital?: number;
         riskLevel?: string;
         bestSymbols?: string[];
+        notes?: string;
     };
     code?: string;
 }
