@@ -123,6 +123,24 @@ def fetch_ohlcv(symbol: str, timeframe: str, days: int = 365) -> pd.DataFrame:
         df = df[~df.index.duplicated(keep='first')]
         return df.sort_index()
     except Exception as e:
+        error_msg = str(e).lower()
+        # Handle Binance Geo-Restriction (HTTP 451)
+        if '451' in error_msg or 'restricted location' in error_msg:
+            print(f"⚠️ Binance restricted in this region. Falling back to Bybit for {symbol}...", file=sys.stderr)
+            try:
+                # Bybit fallback
+                fallback_exchange = ccxt.bybit({'enableRateLimit': True})
+                # Bybit uses different symbol format for some pairs, but CCXT handles most
+                # We try one more time with Bybit
+                ohlcv = fallback_exchange.fetch_ohlcv(symbol, timeframe, limit=1000)
+                if ohlcv:
+                    df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+                    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+                    df.set_index('timestamp', inplace=True)
+                    return df.sort_index()
+            except Exception as fallback_e:
+                print(f"❌ Fallback to Bybit also failed: {fallback_e}", file=sys.stderr)
+        
         print(f"Error fetching {symbol} {timeframe}: {e}", file=sys.stderr)
         return pd.DataFrame()
 

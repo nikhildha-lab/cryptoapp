@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Call Python backtest runner
-        const venvPython = path.join(process.cwd(), '.venv/bin/python3');
+        const venvPython = path.join(process.cwd(), '.venv', 'bin', 'python3');
         const pythonExe = fs.existsSync(venvPython) ? venvPython : 'python3';
         const pythonScript = path.join(process.cwd(), 'backend/scripts/run_backtest.py');
         const command = `"${pythonExe}" "${pythonScript}" "${strategyId}" "${symbol}" "${timeframe}" "${leverage}" "${period}" "${capital}"`;

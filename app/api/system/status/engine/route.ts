@@ -39,10 +39,11 @@ export async function POST() {
         // Command to start the engine in background
         // Using nohup to keep it running after the request finishes
         // We assume .venv and backend structure exists as per project
-        const rootDir = process.cwd();
-        const command = `nohup ./.venv/bin/python3 backend/execution_engine.py > backend/execution.log 2>&1 &`;
+        const venvPython = path.join(process.cwd(), '.venv', 'bin', 'python3');
+        const pythonExe = fs.existsSync(venvPython) ? venvPython : 'python3';
+        const command = `nohup "${pythonExe}" backend/execution_engine.py > backend/execution.log 2>&1 &`;
 
-        exec(command, { cwd: rootDir }, (error, stdout, stderr) => {
+        exec(command, { cwd: process.cwd() }, (error, stdout, stderr) => {
             if (error) {
                 console.error(`exec error: ${error}`);
                 return;

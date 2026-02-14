@@ -55,7 +55,8 @@ export async function POST(request: Request) {
         const mode = body.mode || 'all';
 
         const scriptPath = path.join(process.cwd(), 'backend', 'scripts', 'genetic_optimizer.py');
-        const pythonPath = path.join(process.cwd(), '.venv', 'bin', 'python3');
+        const venvPython = path.join(process.cwd(), '.venv', 'bin', 'python3');
+        const pythonPath = fs.existsSync(venvPython) ? venvPython : 'python3';
         const resultsPath = path.join(process.cwd(), 'backend', 'data', 'shortlisted_strategies.json');
 
         console.log(`[Optimizer] Starting optimization in mode: ${mode}`);

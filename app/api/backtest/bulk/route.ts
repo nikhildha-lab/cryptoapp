@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const venvPython = path.join(process.cwd(), '.venv/bin/python3');
+        const venvPython = path.join(process.cwd(), '.venv', 'bin', 'python3');
         const pythonExe = require('fs').existsSync(venvPython) ? venvPython : 'python3';
         const pythonScript = path.join(process.cwd(), 'backend/scripts/run_backtest.py');
         const results = [];
