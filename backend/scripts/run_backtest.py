@@ -87,62 +87,53 @@ load_dynamic_strategies()
 
 
 def fetch_ohlcv(symbol: str, timeframe: str, days: int = 365) -> pd.DataFrame:
-    """Fetch OHLCV data from Binance with batch fetching support for long periods"""
-    try:
-        exchange = ccxt.binance({
-            'enableRateLimit': True,
-        })
-        
-        # Calculate since timestamp
-        now = exchange.milliseconds()
-        duration_ms = days * 24 * 60 * 60 * 1000
-        since = now - duration_ms
-        
-        all_ohlcv = []
-        limit = 1000
-        
-        while since < now:
-            ohlcv = exchange.fetch_ohlcv(symbol, timeframe, since=since, limit=limit)
-            if not ohlcv:
-                break
-            all_ohlcv.extend(ohlcv)
-            # Move since to the last timestamp + 1ms to avoid overlap
-            since = ohlcv[-1][0] + 1
+    """Fetch OHLCV data with multi-exchange fallback support for regional restrictions"""
+    fallback_chain = ['binance', 'bybit', 'okx', 'kraken', 'kucoin', 'gateio']
+    
+    for ex_id in fallback_chain:
+        try:
+            exchange = getattr(ccxt, ex_id)({'enableRateLimit': True})
             
-            # Safety break if we have enough data or hit a limit
-            if len(all_ohlcv) > 20000: # Practical limit for backtrader performance
-                break
+            # Calculate since timestamp
+            now = exchange.milliseconds()
+            duration_ms = days * 24 * 60 * 60 * 1000
+            since = now - duration_ms
+            
+            all_ohlcv = []
+            limit = 1000
+            
+            print(f"📡 Attempting to fetch {symbol} {timeframe} from {ex_id.upper()}...")
+            
+            while since < now:
+                ohlcv = exchange.fetch_ohlcv(symbol, timeframe, since=since, limit=limit)
+                if not ohlcv:
+                    break
+                all_ohlcv.extend(ohlcv)
+                since = ohlcv[-1][0] + 1
+                if len(all_ohlcv) > 20000:
+                    break
+                    
+            if not all_ohlcv:
+                print(f"⚠️ {ex_id.upper()} returned no data for {symbol}. Trying next...")
+                continue
                 
-        if not all_ohlcv:
-            return pd.DataFrame()
+            df = pd.DataFrame(all_ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+            df.set_index('timestamp', inplace=True)
+            df = df[~df.index.duplicated(keep='first')]
+            return df.sort_index()
             
-        df = pd.DataFrame(all_ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-        df.set_index('timestamp', inplace=True)
-        # Drop duplicates just in case
-        df = df[~df.index.duplicated(keep='first')]
-        return df.sort_index()
-    except Exception as e:
-        error_msg = str(e).lower()
-        # Handle Binance Geo-Restriction (HTTP 451)
-        if '451' in error_msg or 'restricted location' in error_msg:
-            print(f"⚠️ Binance restricted in this region. Falling back to Bybit for {symbol}...", file=sys.stderr)
-            try:
-                # Bybit fallback
-                fallback_exchange = ccxt.bybit({'enableRateLimit': True})
-                # Bybit uses different symbol format for some pairs, but CCXT handles most
-                # We try one more time with Bybit
-                ohlcv = fallback_exchange.fetch_ohlcv(symbol, timeframe, limit=1000)
-                if ohlcv:
-                    df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-                    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-                    df.set_index('timestamp', inplace=True)
-                    return df.sort_index()
-            except Exception as fallback_e:
-                print(f"❌ Fallback to Bybit also failed: {fallback_e}", file=sys.stderr)
-        
-        print(f"Error fetching {symbol} {timeframe}: {e}", file=sys.stderr)
-        return pd.DataFrame()
+        except Exception as e:
+            err_msg = str(e).lower()
+            is_restriction = '451' in err_msg or 'restricted' in err_msg or 'forbidden' in err_msg or 'satisfied' in err_msg
+            if is_restriction:
+                print(f"❌ {ex_id.upper()} restricted in this region for {symbol}. Trying next...", file=sys.stderr)
+            else:
+                print(f"❌ {ex_id.upper()} fetch failed: {e}. Trying next...", file=sys.stderr)
+            continue
+            
+    print(f"🛑 CRITICAL: All exchanges failed to provide data for {symbol} {timeframe}", file=sys.stderr)
+    return pd.DataFrame()
 
 
 def run_backtest(strategy_id: str, symbol: str, timeframe: str, days: int = 365, leverage: int = 1, initial_capital: float = 10000.0, params: Dict[str, Any] = None) -> Dict[str, Any]:

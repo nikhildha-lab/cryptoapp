@@ -241,11 +241,22 @@ class ExecutionEngine:
             self.log("System", f"Failed to save strategies: {str(e)}", "error")
 
     def fetch_data(self, symbol, timeframe, limit=100, exchange_id=None):
-        target_exchange = exchange_id or 'binance'
         start_time = time.time()
-        attempts = 3
         
-        for i in range(attempts):
+        # Priority chain for data feeds
+        fallback_chain = ['binance', 'bybit', 'okx', 'kraken', 'kucoin']
+        
+        # If a specific exchange is requested, try it first, then follow the chain
+        if exchange_id:
+            if exchange_id in fallback_chain:
+                # Reorder chain to start with requested exchange
+                fallback_chain.remove(exchange_id)
+                fallback_chain.insert(0, exchange_id)
+            else:
+                # Add to start of chain
+                fallback_chain.insert(0, exchange_id)
+
+        for target_exchange in fallback_chain:
             try:
                 adapter = self.get_adapter(target_exchange)
                 ohlcv = adapter.fetch_ohlcv(symbol, timeframe, limit=limit)
@@ -260,23 +271,23 @@ class ExecutionEngine:
                     if not pd.api.types.is_datetime64_any_dtype(df['timestamp']):
                         df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
                     return df
-                return None
+                continue # Try next exchange in chain if no data
             except Exception as e:
                 err_msg = str(e).lower()
+                is_timeout = 'timeout' in err_msg
+                is_restriction = '451' in err_msg or 'restricted' in err_msg or 'forbidden' in err_msg or 'not satisfied' in err_msg
                 
-                # Handle Regional Restrictions (HTTP 451)
-                if target_exchange == 'binance' and ('451' in err_msg or 'restricted' in err_msg):
-                    self.log("Exchange", f"⚠️ Binance restricted in this region. Falling back to Bybit for {symbol}...", "warning")
-                    target_exchange = 'bybit'
-                    # Reset timer for the fallback attempt
-                    start_time = time.time()
-                    continue
+                if is_restriction:
+                    self.log("Exchange", f"⚠️ {target_exchange} restricted/blocked in this region for {symbol}. Trying next...", "warning")
+                elif is_timeout:
+                    self.log("Exchange", f"⏱️ {target_exchange} timed out for {symbol}. Trying next...", "warning")
+                else:
+                    self.log("Exchange", f"❌ {target_exchange} failed for {symbol}: {err_msg}. Trying next...", "warning")
                 
-                if i < attempts - 1:
-                    time.sleep(1) # Wait 1s and retry
-                    continue
-                self.log("Exchange", f"Failed to fetch data for {symbol} on {target_exchange} after {attempts} attempts: {err_msg}", "warning")
-                return None
+                continue # Try next exchange
+                
+        self.log("Exchange", f"🛑 All data feeds failed for {symbol} {timeframe} after exhausting fallback chain.", "error")
+        return None
 
     def update_feed_health(self, exchange_id, symbol, timeframe, latency, df):
         try:
