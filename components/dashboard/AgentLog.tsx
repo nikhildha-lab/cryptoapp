@@ -18,7 +18,12 @@ interface LogEntry {
     message: string;
 }
 
-export function AgentLog() {
+interface AgentLogProps {
+    sourceFilter?: string | string[];
+    title?: string;
+}
+
+export function AgentLog({ sourceFilter, title = "Live Kernel Audit" }: AgentLogProps) {
     const router = useRouter();
     const [logs, setLogs] = useState<LogEntry[]>([]);
     const [isTesting, setIsTesting] = useState(false);
@@ -53,7 +58,17 @@ export function AgentLog() {
                 const res = await fetch("/api/system/logs");
                 const data = await res.json();
                 if (data.logs) {
-                    setLogs(data.logs);
+                    let filteredLogs = data.logs;
+
+                    if (sourceFilter) {
+                        const filters = Array.isArray(sourceFilter) ? sourceFilter : [sourceFilter];
+                        // Case-insensitive check just in case
+                        filteredLogs = filteredLogs.filter((log: LogEntry) =>
+                            filters.some(f => f.toLowerCase() === log.source.toLowerCase())
+                        );
+                    }
+
+                    setLogs(filteredLogs);
                 }
             } catch (error) {
                 console.error("Failed to fetch logs", error);
@@ -68,7 +83,7 @@ export function AgentLog() {
             clearInterval(logInterval);
             clearInterval(healthInterval);
         };
-    }, []);
+    }, [sourceFilter]);
 
     return (
         <Card className="col-span-1 md:col-span-3 lg:col-span-4 max-h-[600px]">
@@ -76,7 +91,7 @@ export function AgentLog() {
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                         <Terminal className="h-4 w-4 text-muted-foreground" />
-                        <CardTitle className="text-sm font-medium">Live Kernel Audit</CardTitle>
+                        <CardTitle className="text-sm font-medium">{title}</CardTitle>
                     </div>
                     <div className="flex items-center gap-2">
                         <Button

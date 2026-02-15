@@ -32,7 +32,23 @@ export async function GET() {
         const openTradesLive = activeStrategies.filter((s: any) => s.mode === 'live' && s.position !== null).length;
         const openTradesPaper = activeStrategies.filter((s: any) => s.mode !== 'live' && s.position !== null).length;
 
-        const walletCapital = 5000; // Standardized as requested
+        const BALANCE_FILE = path.join(process.cwd(), 'data', 'balance.json');
+        let walletCapital = 5000; // Default fallback
+
+        if (fs.existsSync(BALANCE_FILE)) {
+            try {
+                const balanceData = JSON.parse(fs.readFileSync(BALANCE_FILE, 'utf-8'));
+                // Check specifically for undefined/null to allow 0.0 as a valid balance
+                if (balanceData.total_value_usdt !== undefined && balanceData.total_value_usdt !== null) {
+                    walletCapital = balanceData.total_value_usdt;
+                } else if (balanceData.total_value_inr !== undefined && balanceData.total_value_inr !== null) {
+                    walletCapital = balanceData.total_value_inr;
+                }
+            } catch (e) {
+                console.error("Failed to parse balance.json", e);
+            }
+        }
+
         const capitalDeployed = activeStrategies.reduce((sum: number, s: any) => sum + (s.capital || 0), 0);
 
         // precise "Money at Risk" calculation (Live)

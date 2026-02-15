@@ -6,41 +6,26 @@ from strategies.rsi import RSIStrategy, RSIStrategyParams
 
 def fetch_ohlcv(symbol, timeframe, limit=100):
     """
-    Fetches OHLCV data using CCXT (public API).
-    Tries multiple exchanges to get data.
+    Fetches OHLCV data using CCXT (Binance Only).
     """
-    exchanges = [
-        ccxt.coindcx(),
-        ccxt.binance(),
-        ccxt.kraken(),
-        ccxt.coinbase()
-    ]
-    
-    for exchange in exchanges:
-        try:
-            print(f"Attempting to fetch data from {exchange.id}...")
-            # CoinDCX might require market symbol adjustment (e.g. BTCUSDT vs BTC/USDT)
-            # CCXT usually handles slash removal for some exchanges automatically
+    exchange = ccxt.binance()
+    try:
+        print(f"Attempting to fetch data from {exchange.id}...")
+        ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
+        
+        if not ohlcv:
+            print(f"No data returned from {exchange.id}")
+            return pd.DataFrame()
             
-            # Fetch OHLCV
-            ohlcv = exchange.fetch_ohlcv(symbol, timeframe, limit=limit)
-            
-            if not ohlcv:
-                print(f"No data returned from {exchange.id}")
-                continue
-                
-            df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-            df.set_index('timestamp', inplace=True)
-            print(f"Successfully fetched data from {exchange.id}")
-            return df
-            
-        except Exception as e:
-            print(f"Error fetching data from {exchange.id}: {e}")
-            continue
-            
-    print("All exchanges failed to provide data.")
-    return pd.DataFrame()
+        df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+        df.set_index('timestamp', inplace=True)
+        print(f"Successfully fetched data from {exchange.id}")
+        return df
+        
+    except Exception as e:
+        print(f"Error fetching data from {exchange.id}: {e}")
+        return pd.DataFrame()
 
 def run_backtest(symbol: str, timeframe: str, params: RSIStrategyParams):
     cerebro = bt.Cerebro()

@@ -30,6 +30,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { RefreshCw, Play, TrendingUp, AlertTriangle, Info, Square, ListChecks, Settings2, Heart, Brain, Target } from 'lucide-react';
 import { AgentLog } from '@/components/dashboard/AgentLog';
+import { MetricsHeader } from '@/components/dashboard/MetricsHeader';
 import {
     Tabs,
     TabsContent,
@@ -39,11 +40,20 @@ import {
 import { toast } from "sonner";
 
 interface StrategyResult {
+    id: string;
     strategyId: string;
     symbol: string;
     timeframe: string;
     leverage: number;
     pnl: number;
+    sharpe?: number;
+    drawdown?: number;
+    winRate?: number;
+    totalTrades?: number;
+    winningStreak?: number;
+    losingStreak?: number;
+    numCandles?: number;
+    trades?: any[];
     params: any;
     rating: string;
 }
@@ -56,13 +66,12 @@ export default function PerformancePage() {
     const [optimizationMode, setOptimizationMode] = useState<"scalp" | "swing" | "all">("all");
 
     // Custom Tuning Parameters
-    const [generations, setGenerations] = useState(2);
-    const [populationSize, setPopulationSize] = useState(4);
-    const [leverage, setLeverage] = useState(5);
+    const [backtestDays, setBacktestDays] = useState(1095);
 
     // Advanced Filters
     const [selectedSymbols, setSelectedSymbols] = useState<string[]>([]);
     const [selectedTimeframes, setSelectedTimeframes] = useState<string[]>([]);
+    const [minTradesFilter, setMinTradesFilter] = useState(0);
 
     // Favorites
     const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -70,6 +79,7 @@ export default function PerformancePage() {
 
     const [activeDeployments, setActiveDeployments] = useState<any[]>([]);
     const [efficiencyReport, setEfficiencyReport] = useState<any>(null);
+    const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
     const fetchEfficiencyReport = async () => {
         try {
@@ -116,7 +126,7 @@ export default function PerformancePage() {
         try {
             const res = await fetch('/api/performance/favorites');
             const data = await res.json();
-            if (data.success) {
+            if (data.success && Array.isArray(data.favorites)) {
                 setFavoriteItems(data.favorites);
                 setFavorites(new Set(data.favorites.map((f: any) =>
                     `${f.symbol}-${f.timeframe}-${f.strategyId}`.toUpperCase()
@@ -188,7 +198,7 @@ export default function PerformancePage() {
         // setResults([]); // Don't clear results anymore as we have history now!
 
         toast.info(retrySkipped ? "Retrying Skipped Coins..." : `Deep Optimization Started (${optimizationMode.toUpperCase()})`, {
-            description: `Tuning: ${generations} Gens, ${populationSize} Pop, ${leverage}x Leverage`,
+            description: `Auto-Scaling Mode • ${backtestDays} Days History`,
         });
 
         try {
@@ -198,9 +208,9 @@ export default function PerformancePage() {
                 body: JSON.stringify({
                     mode: optimizationMode,
                     retrySkipped,
-                    generations,
-                    populationSize,
-                    leverage,
+                    generations: 0, // Ignored by backend (Max Mode Force)
+                    populationSize: 0, // Ignored by backend (Max Mode Force)
+                    days: backtestDays,
                     symbols: selectedSymbols,
                     timeframes: selectedTimeframes
                 })
@@ -304,12 +314,12 @@ export default function PerformancePage() {
         if (selectedResults.size === dataList.length) {
             setSelectedResults(new Set());
         } else {
-            setSelectedResults(new Set(dataList.map(item => getStratId(item))));
+            setSelectedResults(new Set(dataList.map(item => item.id || getStratId(item))));
         }
     };
 
     const toggleSelect = (strat: StrategyResult) => {
-        const id = getStratId(strat);
+        const id = strat.id || getStratId(strat);
         const newSelected = new Set(selectedResults);
         if (newSelected.has(id)) {
             newSelected.delete(id);
@@ -319,8 +329,18 @@ export default function PerformancePage() {
         setSelectedResults(newSelected);
     };
 
+    const toggleExpand = (id: string) => {
+        const newExpanded = new Set(expandedRows);
+        if (newExpanded.has(id)) {
+            newExpanded.delete(id);
+        } else {
+            newExpanded.add(id);
+        }
+        setExpandedRows(newExpanded);
+    };
+
     const handleDeploySelected = async () => {
-        const toDeploy = results.filter(s => selectedResults.has(getStratId(s)));
+        const toDeploy = results.filter(s => selectedResults.has(s.id || getStratId(s)));
         if (toDeploy.length === 0) return;
 
         // Filter out exact duplicates (same params + leverage)
@@ -373,13 +393,13 @@ export default function PerformancePage() {
     const renderResultsTable = (dataList: StrategyResult[], showCheckboxes: boolean = true) => (
         <Table>
             <TableHeader>
-                <TableRow>
+                <TableRow className="bg-slate-50/50 dark:bg-white/[0.02]">
                     {showCheckboxes && (
                         <TableHead className="w-[40px]">
                             <input
                                 type="checkbox"
                                 className="h-4 w-4 rounded border-slate-700 bg-slate-900 focus:ring-blue-500"
-                                checked={dataList.length > 0 && dataList.every(item => selectedResults.has(getStratId(item)))}
+                                checked={dataList.length > 0 && dataList.every(item => selectedResults.has(item.id || getStratId(item)))}
                                 onChange={(e) => {
                                     e.stopPropagation();
                                     toggleSelectAll(dataList);
@@ -388,110 +408,187 @@ export default function PerformancePage() {
                         </TableHead>
                     )}
                     <TableHead className="w-[40px]"></TableHead>
-                    <TableHead className="w-[120px]">Net PnL (1Y)</TableHead>
+                    <TableHead className="w-[80px]">PnL (%)</TableHead>
+                    <TableHead className="w-[80px]">Win %</TableHead>
+                    <TableHead className="w-[80px]">Sharpe</TableHead>
+                    <TableHead className="w-[80px]">DD (%)</TableHead>
+                    <TableHead className="w-[100px]">Streaks (W/L)</TableHead>
+                    <TableHead className="w-[60px]">Trades</TableHead>
+                    <TableHead className="w-[80px]">Candles</TableHead>
                     <TableHead>Configuration</TableHead>
-                    <TableHead className="text-right">Deploy</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {dataList.map((r, i) => {
-                    const key = getStratId(r);
+                    const rowId = r.id || getStratId(r);
                     const isFavorite = favorites.has(`${r.symbol}-${r.timeframe}-${r.strategyId}`.toUpperCase());
+                    const isExpanded = expandedRows.has(rowId);
 
-                    // Match logic
                     const sameParamInstance = activeDeployments.find(a =>
                         a.symbol === r.symbol &&
                         a.timeframe === r.timeframe &&
-                        a.strategyId === r.strategyId &&
+                        (a.strategyId === r.strategyId || a.strategy === r.strategyId) &&
                         Object.entries(r.params || {}).every(([k, v]) => a[k] === v)
                     );
 
-                    const isSameParams = !!sameParamInstance;
                     const isExactActive = sameParamInstance && sameParamInstance.leverage === r.leverage;
+                    const isSameParams = !!sameParamInstance;
                     const isActiveBase = activeDeployments.some(a => a.symbol === r.symbol && a.timeframe === r.timeframe && a.strategyId === r.strategyId);
 
                     return (
-                        <TableRow
-                            key={i}
-                            className={`transition-colors relative cursor-pointer ${selectedResults.has(key) ? "bg-blue-500/20 hover:bg-blue-500/25 border-l-4 border-l-blue-500" : "hover:bg-slate-100/50 dark:hover:bg-white/5"}`}
-                            onClick={(e) => {
-                                const target = e.target as HTMLElement;
-                                if (!target.closest('button') && !target.closest('input')) {
-                                    toggleSelect(r);
-                                }
-                            }}
-                        >
-                            {showCheckboxes && (
-                                <TableCell onClick={(e) => e.stopPropagation()}>
-                                    <input
-                                        type="checkbox"
-                                        className="h-4 w-4 rounded border-slate-700 bg-slate-900 focus:ring-blue-500 cursor-pointer"
-                                        checked={selectedResults.has(key)}
-                                        onChange={() => toggleSelect(r)}
-                                        disabled={isExactActive}
-                                    />
+                        <React.Fragment key={rowId}>
+                            <TableRow
+                                className={`transition-colors cursor-pointer group ${selectedResults.has(rowId) ? "bg-blue-500/10 hover:bg-blue-500/15" : "hover:bg-slate-100/50 dark:hover:bg-white/5"}`}
+                                onClick={() => toggleExpand(rowId)}
+                            >
+                                {showCheckboxes && (
+                                    <TableCell onClick={(e) => e.stopPropagation()}>
+                                        <input
+                                            type="checkbox"
+                                            className="h-4 w-4 rounded border-slate-700 bg-slate-900 focus:ring-blue-500 cursor-pointer"
+                                            checked={selectedResults.has(rowId)}
+                                            onChange={() => toggleSelect(r)}
+                                            disabled={isExactActive}
+                                        />
+                                    </TableCell>
+                                )}
+                                <TableCell>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className={`h-8 w-8 rounded-full ${isFavorite ? 'text-red-500 hover:text-red-600' : 'text-slate-300 hover:text-red-400'}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleFavorite(r);
+                                        }}
+                                    >
+                                        <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
+                                    </Button>
                                 </TableCell>
-                            )}
-                            <TableCell>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className={`h-8 w-8 rounded-full ${isFavorite ? 'text-red-500 hover:text-red-600' : 'text-slate-300 hover:text-red-400'}`}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleFavorite(r);
-                                    }}
+                                <TableCell
+                                    className="font-bold text-lg"
+                                    style={{ color: r.pnl > 0 ? "#22c55e" : "#ef4444" }}
                                 >
-                                    <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
-                                </Button>
-                            </TableCell>
-                            <TableCell
-                                className="cursor-pointer font-bold text-lg"
-                                style={{ color: r.pnl > 0 ? "#22c55e" : "#ef4444" }}
-                                onClick={() => !isExactActive && toggleSelect(r)}
-                            >
-                                {r.pnl.toFixed(1)}%
-                            </TableCell>
-                            <TableCell
-                                className="cursor-pointer"
-                                onClick={() => !isExactActive && toggleSelect(r)}
-                            >
-                                <div className="flex flex-col">
-                                    <div className="flex items-center gap-2">
-                                        <span className="font-bold text-blue-500">{r.symbol}</span>
-                                        <Badge variant="outline" className="text-[10px] py-0">{r.timeframe}</Badge>
-                                        <span className="text-xs text-muted-foreground">x{r.leverage} leverage</span>
-                                        {isSameParams && (
-                                            <Badge className={`${isExactActive ? 'bg-orange-600/20 text-orange-500 border-orange-500/30' : 'bg-blue-600/20 text-blue-500 border-blue-500/30'} text-[9px] py-0 px-1 font-bold`}>
-                                                {isExactActive ? 'ALREADY RUNNING' : 'SAME PARAMS'}
-                                            </Badge>
-                                        )}
-                                        {isActiveBase && !isSameParams && <Badge className="bg-green-600/10 text-green-500/70 border-green-500/20 text-[9px] py-0 px-1">ACTIVE (OTHER VAR)</Badge>}
+                                    {r.pnl?.toFixed(1)}%
+                                </TableCell>
+                                <TableCell className="font-medium text-xs">{r.winRate || (r as any).win_rate || "0"}%</TableCell>
+                                <TableCell className="text-xs">{r.sharpe || (r as any).sharpe_ratio || "0"}</TableCell>
+                                <TableCell className="text-red-400 text-xs">{r.drawdown || (r as any).max_drawdown || "0"}%</TableCell>
+                                <TableCell>
+                                    <div className="flex gap-2 text-[10px]">
+                                        <span className="text-green-500 font-bold" title="Max Win Streak">{r.winningStreak || (r as any).winning_streak || 0}W</span>
+                                        <span className="text-red-400 font-bold" title="Max Loss Streak">{r.losingStreak || (r as any).losing_streak || 0}L</span>
                                     </div>
-                                    <div className="text-[10px] text-muted-foreground font-mono mt-1 italic">
-                                        {r.strategyId} | {Object.entries(r.params || {}).map(([k, v]) => `${k}:${v}`).join(' | ')}
+                                </TableCell>
+                                <TableCell className="text-xs font-bold text-center">{r.totalTrades || (r as any).total_trades || 0}</TableCell>
+                                <TableCell className="text-[10px] text-muted-foreground font-mono">{r.numCandles || "0"}</TableCell>
+                                <TableCell>
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center gap-2">
+                                            <span className="font-bold text-blue-500">{r.symbol}</span>
+                                            <Badge variant="outline" className="text-[10px] py-0">{r.timeframe}</Badge>
+                                            <span className="text-xs text-muted-foreground">x{r.leverage}</span>
+                                            {isSameParams && (
+                                                <Badge className={`${isExactActive ? 'bg-orange-600/20 text-orange-500 border-orange-500/30' : 'bg-blue-600/20 text-blue-500 border-blue-500/30'} text-[9px] py-0 px-1 font-bold`}>
+                                                    {isExactActive ? 'ALREADY RUNNING' : 'SAME PARAMS'}
+                                                </Badge>
+                                            )}
+                                        </div>
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <button
+                                                    className="text-[10px] text-muted-foreground hover:text-blue-500 underline text-left mt-1"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    View Config
+                                                </button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-md bg-white dark:bg-slate-950">
+                                                <DialogHeader>
+                                                    <DialogTitle>Strategy Configuration</DialogTitle>
+                                                    <DialogDescription>
+                                                        Parameters for {r.strategyId} on {r.symbol} {r.timeframe}
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <div className="grid grid-cols-2 gap-2 mt-4 p-4 rounded-lg bg-slate-50 dark:bg-white/5 font-mono text-[10px]">
+                                                    {Object.entries(r.params || {}).map(([k, v]) => (
+                                                        <div key={k} className="flex justify-between border-b border-slate-100 dark:border-white/5 py-1">
+                                                            <span className="text-muted-foreground">{k}:</span>
+                                                            <span className="font-bold">{String(v)}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
                                     </div>
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                                <Button
-                                    size="sm"
-                                    variant={isExactActive ? "outline" : "default"}
-                                    disabled={isExactActive}
-                                    className="h-8 text-xs gap-1"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleDeploy(r);
-                                    }}
-                                >
-                                    {isExactActive ? "Already Active" : (isSameParams ? "Deploy (New Lev)" : "Deploy")}
-                                </Button>
-                            </TableCell>
-                        </TableRow>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                    <Button
+                                        size="sm"
+                                        variant={isExactActive ? "outline" : "default"}
+                                        disabled={isExactActive}
+                                        className="h-8 text-[11px] px-3 gap-1"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDeploy(r);
+                                        }}
+                                    >
+                                        {isExactActive ? "Active" : (isSameParams ? "New Lev" : "Deploy")}
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                            {
+                                isExpanded && r.trades && r.trades.length > 0 && (
+                                    <TableRow className="bg-slate-50/30 dark:bg-white/[0.01]">
+                                        <TableCell colSpan={showCheckboxes ? 10 : 9} className="p-0 border-b">
+                                            <div className="p-4 pl-12 animate-in slide-in-from-top-2 duration-200">
+                                                <h4 className="text-xs font-bold mb-3 flex items-center gap-2 text-slate-400">
+                                                    <ListChecks className="h-3 w-3 text-blue-500" />
+                                                    Backtest Trade History ({r.trades.length} trades)
+                                                </h4>
+                                                <div className="rounded-lg border bg-white dark:bg-slate-950/50 max-h-[300px] overflow-y-auto">
+                                                    <Table>
+                                                        <TableHeader>
+                                                            <TableRow className="bg-slate-50/50 dark:bg-white/5 sticky top-0 z-10">
+                                                                <TableHead className="text-[9px] h-7">Entry Time</TableHead>
+                                                                <TableHead className="text-[9px] h-7">Type</TableHead>
+                                                                <TableHead className="text-[9px] h-7">Entry Price</TableHead>
+                                                                <TableHead className="text-[9px] h-7">Exit Price</TableHead>
+                                                                <TableHead className="text-[9px] h-7">PnL (%)</TableHead>
+                                                                <TableHead className="text-[9px] h-7 text-right">Net PnL ($)</TableHead>
+                                                            </TableRow>
+                                                        </TableHeader>
+                                                        <TableBody>
+                                                            {r.trades.map((t: any, idx: number) => (
+                                                                <TableRow key={idx} className="hover:bg-slate-50/50 dark:hover:bg-white/5 border-b-slate-100/50 dark:border-b-white/5">
+                                                                    <TableCell className="text-[9px] py-1">{new Date(t.entry_time).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</TableCell>
+                                                                    <TableCell className="text-[9px] py-1 font-bold">
+                                                                        <span className={t.type === 'Long' ? 'text-blue-500' : 'text-orange-500'}>{t.type}</span>
+                                                                    </TableCell>
+                                                                    <TableCell className="text-[9px] py-1 font-mono">{t.entry_price}</TableCell>
+                                                                    <TableCell className="text-[9px] py-1 font-mono">{t.exit_price}</TableCell>
+                                                                    <TableCell className={`text-[9px] py-1 font-bold ${t.pnl_perc > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                                                        {t.pnl_perc > 0 ? '+' : ''}{t.pnl_perc}%
+                                                                    </TableCell>
+                                                                    <TableCell className={`text-[9px] py-1 text-right font-mono ${t.pnl > 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                                                        {t.pnl > 0 ? '+' : ''}${t.pnl}
+                                                                    </TableCell>
+                                                                </TableRow>
+                                                            ))}
+                                                        </TableBody>
+                                                    </Table>
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            }
+                        </React.Fragment>
                     );
                 })}
             </TableBody>
-        </Table>
+        </Table >
     );
 
     const handleDeployAll = async () => {
@@ -675,44 +772,41 @@ export default function PerformancePage() {
                                             </div>
                                         </div>
 
-                                        <div className="h-[1px] bg-slate-100 dark:bg-white/5" />
 
-                                        <div className="grid grid-cols-2 gap-3">
-                                            <div className="space-y-2">
-                                                <Label className="text-[10px] uppercase font-bold text-slate-400">Generations</Label>
-                                                <Select value={generations.toString()} onValueChange={(v) => setGenerations(parseInt(v))}>
-                                                    <SelectTrigger className="h-8 text-xs">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {[2, 5, 10, 20].map(n => <SelectItem key={n} value={n.toString()}>{n} Gens</SelectItem>)}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-[10px] uppercase font-bold text-slate-400">Population</Label>
-                                                <Select value={populationSize.toString()} onValueChange={(v) => setPopulationSize(parseInt(v))}>
-                                                    <SelectTrigger className="h-8 text-xs">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {[4, 10, 20, 50].map(n => <SelectItem key={n} value={n.toString()}>{n} Var</SelectItem>)}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                        </div>
 
                                         <div className="space-y-2">
-                                            <Label className="text-[10px] uppercase font-bold text-slate-400">Backtest Leverage (1x - 50x)</Label>
-                                            <Select value={leverage.toString()} onValueChange={(v) => setLeverage(parseInt(v))}>
+                                            <Label className="text-[10px] uppercase font-bold text-slate-400">Data Horizon</Label>
+                                            <Select value={backtestDays.toString()} onValueChange={(v) => setBacktestDays(parseInt(v))}>
                                                 <SelectTrigger className="h-8 text-xs">
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                    {[1, 3, 5, 10, 20, 30, 50].map(n => <SelectItem key={n} value={n.toString()}>{n}x Leverage</SelectItem>)}
+                                                    <SelectItem value="30">1 Month</SelectItem>
+                                                    <SelectItem value="90">3 Months</SelectItem>
+                                                    <SelectItem value="180">6 Months</SelectItem>
+                                                    <SelectItem value="365">1 Year</SelectItem>
+                                                    <SelectItem value="730">2 Years</SelectItem>
+                                                    <SelectItem value="1095">3 Years</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
+
+                                        <div className="space-y-2">
+                                            <Label className="text-[10px] uppercase font-bold text-slate-400">Min Trades Filter</Label>
+                                            <Select value={minTradesFilter.toString()} onValueChange={(v) => setMinTradesFilter(parseInt(v))}>
+                                                <SelectTrigger className="h-8 text-xs">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="0">All (No Filter)</SelectItem>
+                                                    <SelectItem value="5">Min 5 Trades</SelectItem>
+                                                    <SelectItem value="10">Min 10 Trades</SelectItem>
+                                                    <SelectItem value="20">Min 20 Trades</SelectItem>
+                                                    <SelectItem value="50">Min 50 Trades</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
                                     </div>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -853,7 +947,7 @@ export default function PerformancePage() {
                             <TabsContent value="results" className="mt-0">
                                 {loadingResults && <div className="p-12 text-center animate-pulse text-muted-foreground bg-slate-50/50 dark:bg-white/[0.02] rounded-xl border border-dashed border-slate-100 dark:border-white/5">Analyzing market patterns...</div>}
                                 {!loadingResults && results.length === 0 && <div className="p-12 text-center text-muted-foreground border border-dashed border-slate-100 dark:border-white/5 rounded-xl">No current results. Use "Run Deep Optimization" to begin.</div>}
-                                {results.length > 0 && renderResultsTable(results)}
+                                {results.length > 0 && renderResultsTable(results.filter(r => (r.totalTrades || (r as any).total_trades || 0) >= minTradesFilter))}
                             </TabsContent>
 
                             <TabsContent value="favorites" className="mt-0">
@@ -982,7 +1076,7 @@ export default function PerformancePage() {
                     </CardContent>
                 </Card>
 
-                <AgentLog />
+                <AgentLog sourceFilter="Optimizer" title="Deep Optimization Audit" />
             </main>
         </div>
     );

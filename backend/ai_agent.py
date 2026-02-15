@@ -37,7 +37,7 @@ class AIAgent:
                 genai.configure(api_key=self.api_key)
                 self.client = genai.GenerativeModel(self.model_name)
             else:
-                self.logger.warning("Gemini provider selected but library missing or no key. Swapping to mock.")
+                self.logger.warning(f"Gemini provider selected but initialization failed. Lib={genai is not None}, Key={bool(self.api_key)}")
                 self.provider = 'mock'
             
         self.backtest_mode = os.getenv('AI_BACKTEST_MODE', 'false').lower() == 'true'
@@ -135,45 +135,54 @@ class AIAgent:
 
     def _prepare_context(self, symbol, timeframe, df):
         # Custom Import to avoid circular dependency at top level
-        # We need to ensure we have the indicators calculated before context preparation
-        # In a real app, `df` passed here might already have them if processed by engine.
-        # But to be safe, we recalculate/ensure them.
         from strategy_logic import StrategyLogic
         df = StrategyLogic.calculate_indicators(df)
 
-        # Get last 5 rows
-        recent_data = df.tail(5).copy()
+        # Get last 100 candles for context (if available)
+        recent_data = df.tail(100).copy()
         last = recent_data.iloc[-1]
         
-        # Format string
-        data_str = recent_data[['timestamp', 'open', 'high', 'low', 'close', 'volume', 'rsi', 'macd', 'ema_50', 'vwap']].to_string(index=False)
+        # Calculate Volatility (ATR-like or percent change std dev)
+        volatility_score = recent_data['close'].pct_change().std() * 100
+        
+        # Format string (last 10 candles for granular view)
+        data_str = recent_data.tail(10)[['timestamp', 'open', 'high', 'low', 'close', 'volume', 'rsi', 'macd', 'ema_50', 'vwap']].to_string(index=False)
         
         prompt = f"""
-You are a professional crypto trading bot. Analyze the market data for {symbol} ({timeframe}).
+You are a Senior Quantitative Analyst & Pro Trader. Analyze {symbol} ({timeframe}) market structure.
+Goal: Identify High-Probability Setups using Price Action + Indicators.
 
-Recent Market Data (OHLCV + Indicators):
+Recent Data (Last 10 Candles):
 {data_str}
 
-Key Technicals (Last Candle):
+Key Technical Levels (Current):
 - Price: {last['close']:.4f}
-- RSI (14): {last.get('rsi', 'N/A')}
-- MACD: {last.get('macd', 'N/A')}
+- RSI (14): {last.get('rsi', 'N/A')} (Overbought > 70, Oversold < 30)
+- MACD: {last.get('macd', 'N/A')} vs Signal: {last.get('signal', 'N/A')}
 - EMAs: 21={last.get('ema_21', 'N/A'):.4f}, 50={last.get('ema_50', 'N/A'):.4f}, 200={last.get('ema_200', 'N/A'):.4f}
-- VWAP (24h): {last.get('vwap', 'N/A'):.4f}
-- OBV (Order Flow): {last.get('obv', 'N/A')}
+- VWAP: {last.get('vwap', 'N/A'):.4f}
 
-Trend Analysis:
-- Price vs VWAP: {"Bullish" if last['close'] > last.get('vwap', 999999) else "Bearish"}
-- Price vs EMA 200: {"Bullish" if last['close'] > last.get('ema_200', 999999) else "Bearish"}
+ANALYSIS REQUIRED:
+1. MARKET STRUCTURE: Is the market Trending (Bull/Bear) or Ranging? Identify Higher Highs/Lower Lows.
+2. SUPPORT/RESISTANCE: Estimate key levels based on recent Highs/Lows and VWAP/EMAs.
+3. MOMENTUM: Check RSI & MACD for divergence or confirmation.
+4. ORDER FLOW: Volume analysis (rising volume on moves?).
 
-Task:
-Determine the immediate trading action based on Trend, Momentum, and Order Flow.
+DECISION LOGIC:
+- BUY if: Uptrend Structure + Pullback to Support OR Breakout with Volume.
+- SELL if: Downtrend Structure + Rejection at Resistance OR Breakdown.
+- HOLD if: Choppy/Ranging or No clear setup.
 
-Output Format (JSON Only):
+OUTPUT (Strict JSON):
 {{
   "action": "BUY" | "SELL" | "HOLD",
-  "confidence": <number 0-100>,
-  "reason": "<concise explanation citing specific indicators>"
+  "confidence": <0-100 integer>,
+  "leverage": <5-20 integer based on volatility>,
+  "entry_zone": "<string describing entry area>",
+  "stop_loss_price": <float absolute price>,
+  "take_profit_price": <float absolute price>,
+  "market_structure": "Bullish" | "Bearish" | "Ranging",
+  "reason": "<Short concise trading rationale>"
 }}
 """
         return prompt
@@ -217,11 +226,21 @@ Output Format (JSON Only):
         try:
             # Clean generic markdown code blocks if present
             cleaned = response_text.replace("```json", "").replace("```", "").strip()
-            return json.loads(cleaned)
+            data = json.loads(cleaned)
+            
+            # Validate & Default
+            if 'action' not in data: data['action'] = 'HOLD'
+            if 'confidence' not in data: data['confidence'] = 0
+            if 'leverage' not in data: data['leverage'] = 5
+            
+            return data
         except json.JSONDecodeError:
             self.logger.error(f"Failed to parse AI response: {response_text}")
             return {
                 "action": "HOLD",
                 "confidence": 0,
+                "leverage": 5,
+                "stop_loss_price": 0,
+                "take_profit_price": 0,
                 "reason": "Error parsing AI response"
             }

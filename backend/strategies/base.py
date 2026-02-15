@@ -98,6 +98,15 @@ class BaseStrategy(bt.Strategy):
             # 2. Check Trailing Stop
             if self.params.use_trailing_stop:
                 trail_stop_price = self.highest_high * (1 - self.params.trailing_sl_perc)
+                
+                # BREAK-EVEN LOGIC:
+                # If price has moved favorably by at least the trailing amount, ensure we lock in Entry
+                break_even_trigger = self.entry_price * (1 + self.params.trailing_sl_perc)
+                if self.highest_high >= break_even_trigger:
+                    # Ensure limit is at least Entry Price (plus tiny buffer for fees if desired, using entry for now)
+                    if trail_stop_price < self.entry_price:
+                        trail_stop_price = self.entry_price
+                
                 if current_price <= trail_stop_price:
                     self.log(f'TRAILING STOP HIT (Long): Price {current_price:.2f} <= Limit {trail_stop_price:.2f}')
                     self.close()
@@ -126,6 +135,13 @@ class BaseStrategy(bt.Strategy):
             # 2. Check Trailing Stop
             if self.params.use_trailing_stop:
                 trail_stop_price = self.lowest_low * (1 + self.params.trailing_sl_perc)
+                
+                # BREAK-EVEN LOGIC:
+                break_even_trigger = self.entry_price * (1 - self.params.trailing_sl_perc)
+                if self.lowest_low <= break_even_trigger:
+                     if trail_stop_price > self.entry_price:
+                         trail_stop_price = self.entry_price
+
                 if current_price >= trail_stop_price:
                     self.log(f'TRAILING STOP HIT (Short): Price {current_price:.2f} >= Limit {trail_stop_price:.2f}')
                     self.close()

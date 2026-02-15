@@ -3,7 +3,7 @@ Basic Single-Concept Strategies
 Standard implementations of classic trading strategies
 """
 
-from .base import BaseStrategy
+from strategies.base import BaseStrategy
 import backtrader as bt
 
 # 1. MACD TREND FOLLOWING

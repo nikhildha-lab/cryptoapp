@@ -10,33 +10,32 @@ export async function POST(req: Request) {
         const body = await req.json();
         const { mode } = body; // Optional: stop only 'live' or 'paper'
 
-        if (!fs.existsSync(ACTIVE_STRATEGIES_FILE)) {
-            return NextResponse.json({ success: true, message: "No active strategies found" });
+        // COMMAND PATTERN: Write command to file instead of modifying state directly
+        const command = {
+            type: 'STOP_ALL',
+            mode: mode || null, // Optional: stop only 'live' or 'paper'
+            timestamp: new Date().toISOString()
+        };
+
+        const COMMANDS_FILE = path.join(process.cwd(), 'data', 'commands.json');
+
+        // Read existing commands or start fresh
+        let commands = [];
+        if (fs.existsSync(COMMANDS_FILE)) {
+            try {
+                const data = JSON.parse(fs.readFileSync(COMMANDS_FILE, 'utf8'));
+                commands = data.commands || [];
+            } catch (e) {
+                commands = [];
+            }
         }
 
-        const fileContent = fs.readFileSync(ACTIVE_STRATEGIES_FILE, 'utf-8');
-        let strategies = [];
-        try {
-            strategies = JSON.parse(fileContent);
-        } catch (e) {
-            return NextResponse.json({ error: "Failed to parse strategies file" }, { status: 500 });
-        }
-
-        let updatedStrategies = [];
-        if (mode) {
-            // Only remove strategies of a specific mode
-            updatedStrategies = strategies.filter((s: any) => s.mode !== mode);
-        } else {
-            // Remove all
-            updatedStrategies = [];
-        }
-
-        fs.writeFileSync(ACTIVE_STRATEGIES_FILE, JSON.stringify(updatedStrategies, null, 2));
+        commands.push(command);
+        fs.writeFileSync(COMMANDS_FILE, JSON.stringify({ commands }, null, 2));
 
         return NextResponse.json({
             success: true,
-            message: mode ? `All ${mode} strategies stopped` : "All strategies stopped",
-            count: strategies.length - updatedStrategies.length
+            message: "Stop All command queued successfully"
         });
 
     } catch (error: any) {
