@@ -48,7 +48,8 @@ const categoryColors = {
     "Breakout": "bg-orange-500/10 text-orange-500 border-orange-500/20",
     "Volatility": "bg-red-500/10 text-red-500 border-red-500/20",
     "Multi-Indicator": "bg-green-500/10 text-green-500 border-green-500/20",
-    "Scalping": "bg-yellow-500/10 text-yellow-500 border-yellow-500/20"
+    "Scalping": "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+    "AI": "bg-purple-500/10 text-purple-500 border-purple-500/20"
 };
 
 export function StrategyComparison() {
@@ -383,6 +384,7 @@ export function StrategyComparison() {
                                 <TableHead className="text-right">Win Rate</TableHead>
                                 <TableHead className="text-right">Trades</TableHead>
                                 <TableHead className="text-right">Sharpe</TableHead>
+                                <TableHead className="text-right">Drawdown</TableHead>
                                 <TableHead className="text-right">PnL</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
@@ -418,6 +420,9 @@ export function StrategyComparison() {
                                             <TableCell className="font-medium">
                                                 <div className="flex items-center gap-2">
                                                     {strategy.name}
+                                                    {strategy.type === 'AI_AGENT' && (
+                                                        <Badge variant="default" className="text-[10px] px-1 py-0 h-4 bg-purple-600 hover:bg-purple-700">AI AGENT</Badge>
+                                                    )}
                                                     {shortlisted.has(strategy.id) && (
                                                         <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4">Shortlisted</Badge>
                                                     )}
@@ -452,6 +457,11 @@ export function StrategyComparison() {
                                             </TableCell>
                                             <TableCell className="text-right">
                                                 {result ? result.sharpe_ratio.toFixed(2) : "-"}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                {result ? (
+                                                    <span className="text-red-400">-{result.max_drawdown.toFixed(1)}%</span>
+                                                ) : "-"}
                                             </TableCell>
                                             <TableCell className={`text-right font-mono ${result && result.pnl >= 0 ? "text-green-500" : "text-red-500"}`}>
                                                 {result ? (

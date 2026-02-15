@@ -28,6 +28,88 @@ from strategies.combo_strategies import (
     ReversalHunterStrategy
 )
 
+class TradeList(bt.Analyzer):
+    def get_analysis(self):
+        return self.trades
+
+    def __init__(self):
+        self.trades = []
+        self.cum_pnl = 0.0
+
+    def notify_trade(self, trade):
+        if trade.isclosed:
+            # 1. Determine Size & Direction
+            size = trade.size
+            # Fallback if size is 0 (common in closed trades if not accessed via history)
+            if size == 0 and len(trade.history) > 0:
+                 size = trade.history[0].event.size
+
+            is_long = size > 0
+            abs_size = abs(size)
+            
+            # 2. Prices
+            entry_price = trade.price
+            # Use gross PnL for price extraction to be precise on price action
+            # Pnl = (Exit - Entry) * Size
+            if abs_size > 0:
+                price_diff_gross = trade.pnl / abs_size
+                if is_long:
+                    exit_price = entry_price + price_diff_gross
+                else:
+                    exit_price = entry_price - price_diff_gross
+            else:
+                exit_price = entry_price # Fallback
+
+            # 3. Strategy Params (SL/TP)
+            sl_price = 0.0
+            tp_price = 0.0
+            sl_dist = 0.0
+            tp_dist = 0.0
+            
+            # Attempt to retrieve params from the strategy object
+            try:
+                # self.strategy is available in Analyzers
+                params = self.strategy.params
+                sl_perc = getattr(params, 'stop_loss', 0)
+                tp_perc = getattr(params, 'take_profit', 0)
+                
+                if sl_perc > 0:
+                    sl_dist = entry_price * sl_perc
+                    sl_price = (entry_price - sl_dist) if is_long else (entry_price + sl_dist)
+                    
+                if tp_perc > 0:
+                    tp_dist = entry_price * tp_perc
+                    tp_price = (entry_price + tp_dist) if is_long else (entry_price - tp_dist)
+            except:
+                pass
+
+            # 4. Risk / Reward
+            risk_reward = 0.0
+            if sl_dist > 0:
+                risk_reward = tp_dist / sl_dist if tp_dist > 0 else 0
+
+            # 5. Capital & Metrics
+            capital = entry_price * abs_size
+            
+            # 6. Cumulative PnL
+            self.cum_pnl += trade.pnlcomm
+
+            self.trades.append({
+                'entry_time': bt.num2date(trade.dtopen).isoformat(), # ISO format includes YYYY-MM-DD
+                'exit_time': bt.num2date(trade.dtclose).isoformat(),
+                'pnl': round(trade.pnlcomm, 2),
+                'pnl_perc': round((trade.pnlcomm / capital * 100), 2) if capital != 0 else 0, # PnL % on Margin/Capital
+                'cumulative_pnl': round(self.cum_pnl, 2),
+                'entry_price': round(entry_price, 4),
+                'exit_price': round(exit_price, 4),
+                'size': round(abs_size, 6),
+                'capital': round(capital, 2),
+                'target': round(tp_price, 4),
+                'stop_loss': round(sl_price, 4),
+                'risk_reward': round(risk_reward, 2),
+                'type': 'Long' if is_long else 'Short'
+            })
+
 # Strategy ID to Class mapping
 STRATEGY_MAP = {
     # New Standard strategies
@@ -87,53 +169,42 @@ load_dynamic_strategies()
 
 
 def fetch_ohlcv(symbol: str, timeframe: str, days: int = 365) -> pd.DataFrame:
-    """Fetch OHLCV data with multi-exchange fallback support for regional restrictions"""
-    fallback_chain = ['binance', 'bybit', 'okx', 'kraken', 'kucoin', 'gateio']
-    
-    for ex_id in fallback_chain:
-        try:
-            exchange = getattr(ccxt, ex_id)({'enableRateLimit': True})
-            
-            # Calculate since timestamp
-            now = exchange.milliseconds()
-            duration_ms = days * 24 * 60 * 60 * 1000
-            since = now - duration_ms
-            
-            all_ohlcv = []
-            limit = 1000
-            
-            print(f"📡 Attempting to fetch {symbol} {timeframe} from {ex_id.upper()}...")
-            
-            while since < now:
-                ohlcv = exchange.fetch_ohlcv(symbol, timeframe, since=since, limit=limit)
-                if not ohlcv:
-                    break
-                all_ohlcv.extend(ohlcv)
-                since = ohlcv[-1][0] + 1
-                if len(all_ohlcv) > 20000:
-                    break
-                    
-            if not all_ohlcv:
-                print(f"⚠️ {ex_id.upper()} returned no data for {symbol}. Trying next...")
-                continue
+    """Fetch OHLCV data from Binance Only"""
+    ex_id = 'binance'
+    try:
+        exchange = getattr(ccxt, ex_id)({'enableRateLimit': True})
+        
+        # Calculate since timestamp
+        now = exchange.milliseconds()
+        duration_ms = days * 24 * 60 * 60 * 1000
+        since = now - duration_ms
+        
+        all_ohlcv = []
+        limit = 1000
+        
+        print(f"📡 Attempting to fetch {symbol} {timeframe} from {ex_id.upper()}...")
+        
+        while since < now:
+            ohlcv = exchange.fetch_ohlcv(symbol, timeframe, since=since, limit=limit)
+            if not ohlcv:
+                break
+            all_ohlcv.extend(ohlcv)
+            since = ohlcv[-1][0] + 1
+            if len(all_ohlcv) > 20000:
+                break
                 
-            df = pd.DataFrame(all_ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-            df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-            df.set_index('timestamp', inplace=True)
-            df = df[~df.index.duplicated(keep='first')]
-            return df.sort_index()
+        if not all_ohlcv:
+            print(f"⚠️ {ex_id.upper()} returned no data for {symbol}.")
+            return pd.DataFrame()
+
+        df = pd.DataFrame(all_ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+        df.set_index('timestamp', inplace=True)
+        return df
             
-        except Exception as e:
-            err_msg = str(e).lower()
-            is_restriction = '451' in err_msg or 'restricted' in err_msg or 'forbidden' in err_msg or 'satisfied' in err_msg
-            if is_restriction:
-                print(f"❌ {ex_id.upper()} restricted in this region for {symbol}. Trying next...", file=sys.stderr)
-            else:
-                print(f"❌ {ex_id.upper()} fetch failed: {e}. Trying next...", file=sys.stderr)
-            continue
-            
-    print(f"🛑 CRITICAL: All exchanges failed to provide data for {symbol} {timeframe}", file=sys.stderr)
-    return pd.DataFrame()
+    except Exception as e:
+        print(f"❌ {ex_id.upper()} fetch failed: {e}", file=sys.stderr)
+        return pd.DataFrame()
 
 
 def run_backtest(strategy_id: str, symbol: str, timeframe: str, days: int = 365, leverage: int = 1, initial_capital: float = 10000.0, params: Dict[str, Any] = None) -> Dict[str, Any]:
@@ -163,6 +234,11 @@ def run_backtest(strategy_id: str, symbol: str, timeframe: str, days: int = 365,
     # Add strategy with params if provided
     current_params = params.copy() if params else {}
     current_params['leverage'] = leverage
+    
+    # Sanitize metadata to prevent Backtrader TypeError (colliding with positional args)
+    for key in ['id', 'strategy', 'symbol', 'timeframe']:
+        current_params.pop(key, None)
+        
     cerebro.addstrategy(strategy_class, **current_params)
     
     # Add data
@@ -193,6 +269,7 @@ def run_backtest(strategy_id: str, symbol: str, timeframe: str, days: int = 365,
     cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name='sharpe')
     cerebro.addanalyzer(bt.analyzers.DrawDown, _name='drawdown')
     cerebro.addanalyzer(bt.analyzers.TradeAnalyzer, _name='trades')
+    cerebro.addanalyzer(TradeList, _name='tradelist')
     
     try:
         # Run backtest
@@ -220,10 +297,17 @@ def run_backtest(strategy_id: str, symbol: str, timeframe: str, days: int = 365,
             total_trades = trade_analysis.get('total', {}).get('total', 0)
             won_trades = trade_analysis.get('won', {}).get('total', 0)
             win_rate = round((won_trades / total_trades * 100), 1) if total_trades > 0 else 0.0
+            
+            winning_streak = trade_analysis.get('streak', {}).get('won', {}).get('longest', 0)
+            losing_streak = trade_analysis.get('streak', {}).get('lost', {}).get('longest', 0)
         except:
             total_trades = 0
             won_trades = 0
             win_rate = 0.0
+            winning_streak = 0
+            losing_streak = 0
+            
+        tradelist = strat.analyzers.tradelist.get_analysis()
         
         return {
             'pnl': round(pnl, 2),
@@ -233,15 +317,22 @@ def run_backtest(strategy_id: str, symbol: str, timeframe: str, days: int = 365,
             'win_rate': win_rate,
             'total_trades': total_trades,
             'won_trades': won_trades,
+            'winning_streak': winning_streak,
+            'losing_streak': losing_streak,
+            'num_candles': len(df),
+            'trades_list': tradelist,
             'final_value': round(final_value, 2),
             'initial_capital': initial_capital,
             'leverage': leverage,
             'symbol': symbol,
             'timeframe': timeframe,
-            'strategy': strategy_id
+            'strategy': strategy_id,
+            'params': current_params
         }
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         print(f"Backtest error: {e}", file=sys.stderr)
         return {
             'error': str(e),

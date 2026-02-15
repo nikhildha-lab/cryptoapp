@@ -16,7 +16,9 @@ export async function GET() {
             return NextResponse.json({ success: true, favorites: [] });
         }
         const data = fs.readFileSync(FAVORITES_FILE, "utf-8");
-        return NextResponse.json({ success: true, favorites: JSON.parse(data) });
+        const parsed = JSON.parse(data);
+        const favorites = Array.isArray(parsed) ? parsed : (parsed.items || []);
+        return NextResponse.json({ success: true, favorites });
     } catch (error: any) {
         return NextResponse.json({ success: false, error: "Failed to load favorites" }, { status: 500 });
     }

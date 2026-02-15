@@ -3,8 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Initialize Gemini
-// Note: This requires GEMINI_API_KEY in .env.local
-const apiKey = process.env.GEMINI_API_KEY;
+// Note: This requires GEMINI_API_KEY or AI_API_KEY in .env
+const apiKey = process.env.GEMINI_API_KEY || process.env.AI_API_KEY;
 
 export async function POST(request: NextRequest) {
     try {

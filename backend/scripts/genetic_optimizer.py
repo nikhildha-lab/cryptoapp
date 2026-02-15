@@ -8,25 +8,43 @@ import argparse
 import traceback
 import numpy as np
 import pandas as pd
+import ccxt
 import logging
 import copy
 from datetime import datetime, timedelta
+import warnings
+
+# Suppress noisy warnings
+warnings.filterwarnings("ignore", category=DeprecationWarning, module="pandas")
+warnings.filterwarnings("ignore", category=FutureWarning, module="pandas")
+warnings.filterwarnings("ignore", category=UserWarning, module="urllib3")
+try:
+    from urllib3.exceptions import NotOpenSSLWarning
+    warnings.filterwarnings("ignore", category=NotOpenSSLWarning)
+except ImportError:
+    pass
+
+from dotenv import load_dotenv
+# Load .env.local from project root
+# Script is in backend/scripts/genetic_optimizer.py -> root is ../../../
+root_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+load_dotenv(os.path.join(root_dir, '.env.local'))
 
 # Add backend to path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from strategy_logic import StrategyLogic
 try:
-    from backend.scripts.run_backtest import fetch_ohlcv
+    from backend.scripts.run_backtest import fetch_ohlcv, run_backtest
 except ImportError:
     try:
-        from scripts.run_backtest import fetch_ohlcv
+        from scripts.run_backtest import fetch_ohlcv, run_backtest
     except ImportError:
         # Fallback if running from within backend/scripts
         import sys
         import os
         sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-        from run_backtest import fetch_ohlcv
+        from run_backtest import fetch_ohlcv, run_backtest
 
 # Configure Logging - Force stdout for info to match 'info' level in backend
 logging.basicConfig(
@@ -43,6 +61,18 @@ class GeneticOptimizer:
         self.strategies = self._load_strategies()
         self.data_cache = {}
         self.alphaxgb_weights = self._load_alphaxgb_weights()
+        self.excluded_strategies = self._load_exclusions()
+
+    def _load_exclusions(self):
+        try:
+            # Root data folder is ../../../data relative to backend/scripts/genetic_optimizer.py
+            path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'data/excluded_strategies.json')
+            if os.path.exists(path):
+                with open(path, 'r') as f:
+                    return json.load(f)
+            return []
+        except:
+            return []
 
     def _load_alphaxgb_weights(self):
         try:
@@ -76,15 +106,13 @@ class GeneticOptimizer:
                 'slow_ema': (10, 30, int),
                 'stop_loss': (0.001, 0.02, float),
                 'take_profit': (0.005, 0.05, float),
-                'trailing_sl_perc': (0.001, 0.02, float),
-                'tp_extension_factor': (0.005, 0.05, float)
+                'trailing_sl_perc': (0.001, 0.02, float)
             }
         elif strategy_id == 'ndrt-strategy':
             ranges = {
                 'buffer_percent': (0.1, 2.0, float),
                 'stop_loss': (0.001, 0.05, float),
-                'trailing_sl_perc': (0.001, 0.03, float),
-                'tp_extension_factor': (0.005, 0.10, float)
+                'trailing_sl_perc': (0.001, 0.03, float)
             }
         elif strategy_id == 'triple-confirmation':
             ranges = {
@@ -94,8 +122,7 @@ class GeneticOptimizer:
                 'volume_multiplier': (1.1, 3.0, float),
                 'stop_loss': (0.01, 0.05, float),
                 'take_profit': (0.02, 0.10, float),
-                'trailing_sl_perc': (0.005, 0.03, float),
-                'tp_extension_factor': (0.01, 0.10, float)
+                'trailing_sl_perc': (0.005, 0.03, float)
             }
         elif strategy_id == 'trend-momentum':
             ranges = {
@@ -139,6 +166,22 @@ class GeneticOptimizer:
         """Approximation of PnL using vectorized operations."""
         strat_id = config.get('id') or config.get('strategy')
         
+        # ---------------------------------------------------
+        # LIQUIDATION & SAFETY CHECK
+        # ---------------------------------------------------
+        leverage = config.get('leverage', 1.0)
+        
+        # 1. Liquidation Threshold
+        # Liquidation roughly happens at 100/Leverage % distance.
+        # Binance maint. margin is usually 0.5% to 1%.
+        # Safety: We kill any strategy where SL >= (1/leverage) * 0.9
+        
+        stop_loss = config.get('stop_loss', 0)
+        if stop_loss > 0:
+            liquidation_dist = (1.0 / leverage) * 0.9 # 90% of liquidation distance
+            if stop_loss >= liquidation_dist:
+                return -999.0 # INVALID: SL is below liquidation price
+        
         # We work on a copy
         d = df.copy()
         signal_col = pd.Series(0, index=d.index)
@@ -165,8 +208,11 @@ class GeneticOptimizer:
             
             vol_sma = d['volume'].rolling(window=20).mean()
             
-            buy_cond = (d['rsi'] < config.get('rsi_oversold', 30)) & (macd > signal) & (d['volume'] > vol_sma * config.get('volume_multiplier', 1.5))
-            sell_cond = (d['rsi'] > config.get('rsi_overbought', 70)) & (macd < signal) & (d['volume'] > vol_sma * config.get('volume_multiplier', 1.5))
+            # Directional Volatility Requirements (Optional but good)
+            vol_mult = config.get('volume_multiplier', 1.5)
+            
+            buy_cond = (d['rsi'] < config.get('rsi_oversold', 30)) & (macd > signal) & (d['volume'] > vol_sma * vol_mult)
+            sell_cond = (d['rsi'] > config.get('rsi_overbought', 70)) & (macd < signal) & (d['volume'] > vol_sma * vol_mult)
             
             signal_col[buy_cond] = 1
             signal_col[sell_cond] = -1
@@ -176,10 +222,17 @@ class GeneticOptimizer:
             d['ema_f'] = d['close'].ewm(span=config.get('fast_ema', 5), adjust=False).mean()
             d['ema_s'] = d['close'].ewm(span=config.get('slow_ema', 13), adjust=False).mean()
             
-            vol_threshold = d['atr'] > (d['atr'].rolling(100).mean())
+            # Directional Variations: Allow Short side to require more/less volatility
+            vol_mult_long = config.get('vol_multiplier_long', config.get('vol_multiplier', 1.5))
+            vol_mult_short = config.get('vol_multiplier_short', config.get('vol_multiplier', 1.5))
             
-            buy_cond = (d['ema_f'] > d['ema_s']) & (d['ema_f'].shift(1) <= d['ema_s'].shift(1)) & vol_threshold
-            sell_cond = (d['ema_f'] < d['ema_s']) & (d['ema_f'].shift(1) >= d['ema_s'].shift(1)) & vol_threshold
+            atr_mean = d['atr'].rolling(100).mean()
+            
+            vol_threshold_long = d['atr'] > (atr_mean * vol_mult_long)
+            vol_threshold_short = d['atr'] > (atr_mean * vol_mult_short)
+            
+            buy_cond = (d['ema_f'] > d['ema_s']) & (d['ema_f'].shift(1) <= d['ema_s'].shift(1)) & vol_threshold_long
+            sell_cond = (d['ema_f'] < d['ema_s']) & (d['ema_f'].shift(1) >= d['ema_s'].shift(1)) & vol_threshold_short
             
             signal_col[buy_cond] = 1
             signal_col[sell_cond] = -1
@@ -248,6 +301,9 @@ class GeneticOptimizer:
         # PnL CALCULATION (Simplified but rewarding trailing behavior)
         # ---------------------------------------------------
         d['ret'] = d['close'].pct_change().shift(-1)
+        # Fix: ensure only legal leverage is used
+        d['ret'] = d['ret'].clip(lower=-1.0) # Cannot lose more than 100% of asset value
+        
         d['signal'] = signal_col
         d['position'] = d['signal'].replace(0, np.nan).ffill().fillna(0)
         
@@ -260,17 +316,15 @@ class GeneticOptimizer:
         
         # Heuristic Bonus for Trailing: 
         trailing_sl_perc = config.get('trailing_sl_perc', 0)
-        tp_extension_factor = config.get('tp_extension_factor', 0)
         
         raw_pnl = d['strategy_ret'].sum() - costs
         
         # Consistency Bonus: Simplified Sharpe Ratio
-        # Reward strategies with lower standard deviation of returns
         if raw_pnl > 0:
             std_dev = d['strategy_ret'].std()
             if std_dev > 0:
                 sharpe_approx = (raw_pnl / std_dev) / 100
-                raw_pnl += sharpe_approx # Add consistency boost
+                raw_pnl += sharpe_approx 
             
         # Penalty for aggressive leverage without trailing
         if leverage > 3 and trailing_sl_perc == 0:
@@ -280,40 +334,19 @@ class GeneticOptimizer:
         if raw_pnl > 0 and trailing_sl_perc > 0:
             raw_pnl *= 1.1 
             
-        if tp_extension_factor > 0 and raw_pnl > 0:
-            raw_pnl *= 1.05 # 5% bonus for target scaling
-            
         pnl = raw_pnl
         if np.isnan(pnl): pnl = -10.0
         
-        # --- AlphaXGB PREDICTIVE BOOST ---
-        symbol = config.get('symbol', 'BTC/USDT')
-        tf = config.get('timeframe', '1h')
-        key = f"{strat_id}|{symbol}|{tf}"
-        
-        ml_weight = self.alphaxgb_weights.get(key, {})
-        if ml_weight:
-            # Shift the PnL based on AlphaXGB score
-            # A score > 0 boosts fitness, < 0 (high risk) suppresses it
-            score = ml_weight.get('score', 0)
-            pnl += score
-            
-            # Additional penalty if win rate is historically low (<40%)
-            if ml_weight.get('winRate', 1.0) < 0.4:
-                pnl -= 5.0
-                
         return pnl
 
-    def run_optimization(self, strategy_id, symbol='BTC/USDT', timeframe='1h', generations=5, population_size=10, leverage=5):
-        logger.info(f"🧬 Optimizing {strategy_id} on {symbol} {timeframe} x{leverage}...")
+    def run_optimization(self, strategy_id, symbol='BTC/USDT', timeframe='1h', generations=5, population_size=10, min_leverage=3, max_leverage=10, days=365):
+        logger.info(f"🧬 Optimizing {strategy_id} on {symbol} {timeframe} (Lev: {min_leverage}x-{max_leverage}x, Days: {days})...")
         
-        # Days to fetch: 365 for deep, maybe less for quick? User asked for 365.
-        # 5m data for 365 days is huge (105k rows). ccxt fetch_ohlcv might paginate or fail.
-        # For simplicity/robustness in 'deep' mode with 5m, we might need to limit days or rely on good cache.
-        # Let's try 60 days for 5m/15m to be safe on API limits, 365 for 1h/4h.
-        
-        days = 365
-        if timeframe in ['3m', '5m', '15m', '30m']: days = 30 # Safety cap for lower TFs to prevent API timeout
+        # Safety cap for lower TFs to prevent API timeout/memory issues if days is huge
+        if timeframe in ['3m', '5m', '15m'] and days > 60:
+             logger.warning(f"⚠️ Capping backtest duration for {timeframe} to 60 days (requested {days}) to prevent timeout.")
+             days = 60
+
         
         cache_key = f"{symbol}_{timeframe}"
         if cache_key not in self.data_cache:
@@ -334,6 +367,10 @@ class GeneticOptimizer:
         if not ranges:
             logger.warning(f"No optimization ranges defined for {strategy_id}.")
             return target_strat.get('params', {})
+            
+        # Add leverage as a gene in the ranges if not present
+        if not ranges: ranges = {}
+        ranges['leverage'] = (min_leverage, max_leverage, int)
         
         # Walk-Forward Validation: Split Data
         split_idx = int(len(df) * 0.8)
@@ -358,7 +395,7 @@ class GeneticOptimizer:
             for ind in population:
                 # Inject ID for checking
                 ind['id'] = strategy_id
-                ind['leverage'] = leverage
+                # leverage is now in 'ind' from random generation
                 fitness = self.quick_backtest(train_df, ind)
                 scores.append((fitness, ind))
             
@@ -369,7 +406,10 @@ class GeneticOptimizer:
             
             # logger.info(f"  Gen {gen+1}: Best Train PnL = {current_best:.2f}%")
             if (gen + 1) % 2 == 0 or gen == 0:
-                print(f"    - Generation {gen+1}: Best PnL {current_best:.2f}%")
+                best_ind = scores[0][1]
+                # Filter out heavy objects or internal keys if any
+                clean_params = {k: v for k, v in best_ind.items() if k not in ['id', 'strategy']}
+                print(f"    - Generation {gen+1}: Best PnL {current_best:.2f}% | Params: {clean_params}")
             
             survivors = [s[1] for s in scores[:max(1, population_size // 2)]]
             
@@ -389,7 +429,6 @@ class GeneticOptimizer:
             population = new_pop
             
         best_params = scores[0][1]
-        best_params['leverage'] = leverage
         best_params['symbol'] = symbol
         best_params['timeframe'] = timeframe
         
@@ -402,13 +441,13 @@ class GeneticOptimizer:
         #    Allowing 50% dropoff as acceptable "reality Check"
         # User Feedback:    # Robustness Criteria
         if test_pnl > 0.0: # Lowered PnL threshold to show results
-            logger.info(f"  ✅ Validated | PnL: {test_pnl:.0f}% (Train: {best_train_pnl:.0f}%)")
+            logger.info(f"  ✅ Validated | PnL: {test_pnl:.0f}% (Train: {best_train_pnl:.0f}%) | Lev: x{best_params.get('leverage')}")
             return best_params, test_pnl # Return test PnL as realistic expectation
         else:
-            logger.warning(f"  ❌ Failed | PnL: {test_pnl:.0f}% (Train: {best_train_pnl:.0f}%)")
+            logger.warning(f"  ❌ Failed | PnL: {test_pnl:.0f}% (Train: {best_train_pnl:.0f}%) | Lev: x{best_params.get('leverage')}")
             return None
 
-    def run_all(self, leverage=5):
+    def run_all(self, min_leverage=3, max_leverage=10):
         results = {}
         report = []
         strategies_to_optimize = [
@@ -425,11 +464,12 @@ class GeneticOptimizer:
         
         for mid in strategies_to_optimize:
             # Force BTC/USDT for all
-            lev_to_use = leverage
+            lev_min = min_leverage
+            lev_max = max_leverage
             if mid == 'mean-reversion-pro':
-                lev_to_use = min(leverage, 3)
+                lev_max = min(max_leverage, 3)
                 
-            res = self.run_optimization(mid, symbol='BTC/USDT', leverage=lev_to_use)
+            res = self.run_optimization(mid, symbol='BTC/USDT', min_leverage=lev_min, max_leverage=lev_max, days=365)
             if res:
                 best_params, best_pnl = res
                 results[mid] = best_params
@@ -449,11 +489,20 @@ class GeneticOptimizer:
             print(f"{item['strategy']:<25} | {item['pnl']:>9.2f}%")
         print("="*60)
         
-        logger.info(f"✅ Optimization Complete. Saved to {self.output_path}")
+        logger.info(f"✅ Global Optimization Complete. Saved to {self.output_path}")
 
-    def run_deep_optimization(self, mode='all', retry_skipped=False, generations=2, population_size=4, leverage=5, symbols=None, timeframes=None):
+        # Chain into Deep Optimization
+        print("\n🔄 Chaining into DEEP OPTIMIZATION ENGINE...")
+        self.run_deep_optimization(mode='all', min_leverage=min_leverage, max_leverage=max_leverage, days=365)
+
+    def run_deep_optimization(self, mode='all', retry_skipped=False, generations=50, population_size=100, min_leverage=3, max_leverage=10, days=365, symbols=None, timeframes=None):
+        # OPTIMIZED for ~6 Hours (50 Gens x 100 Pop = 5000 iterations per task)
+        generations = 50
+        population_size = 100
+        
         print("="*60)
         print(f"🚀 STARTING DEEP OPTIMIZATION ENGINE (Mode: {mode.upper()})")
+        print(f"Targeting ~6 Hour Runtime: {generations} Gens x {population_size} Population")
         if retry_skipped:
             print("🔄 RETRY MODE: Processing previously skipped coins only.")
         else:
@@ -488,14 +537,13 @@ class GeneticOptimizer:
                 logger.error(f"Failed to load skipped coins: {e}")
 
         if not tasks:
-            # Standard Task Generation
-            if symbols:
-                coins = [s.strip() for s in symbols.split(',') if s.strip()]
-            else:
-                coins = [
-                    'BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'ADA/USDT', 'DOT/USDT', 
-                    'LINK/USDT', 'MATIC/USDT', 'XRP/USDT', 'DOGE/USDT', 'AVAX/USDT'
-                ]
+            # GRID SEARCH MODE (Fixed Top 20 Coins)
+            coins = [
+                'BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'ADA/USDT', 'XRP/USDT',
+                'BNB/USDT', 'DOGE/USDT', 'MATIC/USDT', 'DOT/USDT', 'LTC/USDT',
+                'AVAX/USDT', 'LINK/USDT', 'UNI/USDT', 'ATOM/USDT', 'ETC/USDT',
+                'FIL/USDT', 'NEAR/USDT', 'ALGO/USDT', 'ICP/USDT', 'BCH/USDT'
+            ]
             
             all_timeframes = ['3m', '5m', '15m', '30m', '1h', '4h', '1d']
             
@@ -506,24 +554,97 @@ class GeneticOptimizer:
             elif mode == 'swing':
                 timeframes_list = ['1h', '4h', '1d']
             elif mode == 'test':
-                 coins = ['BTC/USDT', 'ETH/USDT']
+                 coins = ['BTC/USDT']
                  timeframes_list = ['1h']
             else:
                 timeframes_list = all_timeframes
-    
+
+            # Grid Search Settings
             strategies = ['trend-momentum', 'triple-confirmation', 'ndrt-strategy', 'mean-reversion-pro', 'volatility-scalper']
             
+            # LEVERAGE GRID: 3x - 10x
+            leverage_grid = [3, 5, 8, 10]
+            
+            # Dynamic Trailing Grid mapping (Leverage -> Trailing %)
+            trailing_map = {
+                3: [0.02, 0.03, 0.04],   # 3x: Wide
+                5: [0.015, 0.025, 0.03], # 5x: Standard
+                8: [0.01, 0.015, 0.02],  # 8x: Tight
+                10: [0.008, 0.012, 0.015]# 10x: Scalp
+            }
+
+            # GRID SEARCH GENERATION
+            import itertools
+
+            print(f"🌍 Generating Grid Search Tasks for {len(coins)} coins across {len(timeframes_list)} timeframes...")
+
             for coin in coins:
                 for tf in timeframes_list:
-                    # --- RISK EXCLUSIONS ---
-                    if tf in ['15m', '30m']:
-                        continue
-                        
                     for strat in strategies:
-                        if strat == 'mean-reversion-pro' and coin in ['SOL/USDT', 'LINK/USDT']:
-                            continue
-                            
-                        tasks.append({"symbol": coin, "timeframe": tf, "strategy": strat})
+                        # Define Grids
+                        grid = {}
+                        
+                        if strat == 'volatility-scalper':
+                            grid = {
+                                'vol_multiplier': [1.5, 2.0, 2.5],
+                                'ema_fast': [5, 9],
+                                'stop_loss': [0.005, 0.01, 0.02]
+                            }
+                        elif strat == 'ndrt-strategy':
+                            grid = {
+                                'buffer_percent': [0.1, 0.5, 1.0, 1.5],
+                                'stop_loss': [0.01, 0.02, 0.03, 0.05, 0.08]
+                            }
+                        elif strat == 'triple-confirmation':
+                            grid = {
+                                'rsi_period': [7, 14, 21],
+                                'rsi_oversold': [25, 30, 35],
+                                'take_profit': [0.03, 0.06]
+                            }
+                        elif strat == 'trend-momentum':
+                            grid = {
+                                'ema_fast': [9, 12],
+                                'ema_slow': [21, 50],
+                                'adx_threshold': [20, 25],
+                                'stoch_oversold': [20, 30, 40]
+                            }
+                        elif strat == 'mean-reversion-pro':
+                            grid = {
+                                'bb_devfactor': [2.0, 2.5, 3.0],
+                                'rsi_period': [7, 14],
+                                'williams_oversold': [-80, -90, -95]
+                            }
+                        
+                        # Handle Global Grids (Leverage + Dynamic Trailing)
+                        base_keys = list(grid.keys())
+                        base_values = list(grid.values())
+                        
+                        if not base_values:
+                            base_combos = [{}]
+                        else:
+                            base_combos = [dict(zip(base_keys, c)) for c in itertools.product(*base_values)]
+
+                        for base_params in base_combos:
+                            for lev in leverage_grid:
+                                # Get applicable trailing stops for this leverage
+                                current_trails = trailing_map.get(lev, [0.01])
+                                
+                                for trail in current_trails:
+                                    # Create final params
+                                    final_params = base_params.copy()
+                                    final_params['leverage'] = lev
+                                    final_params['trailing_sl_perc'] = trail
+                                    final_params['use_trailing_stop'] = True
+                                    
+                                    tasks.append({
+                                        "symbol": coin,
+                                        "timeframe": tf,
+                                        "strategy": strat,
+                                        "params": final_params,
+                                        "is_grid": True
+                                    })
+            
+            print(f"✅ Generated {len(tasks)} Grid Search Tasks (Combinations)")
 
         # We don't clear the list here; the API route does that on start.
         # We append valid results as we find them.
@@ -542,7 +663,8 @@ class GeneticOptimizer:
                 
                 curr += 1
                 progress = (curr / total_runs) * 100
-                print(f"[{curr}/{total_runs}] ({progress:.1f}%) Optimizing {strat} on {coin} {tf}...")
+                iterations_per_task = generations * population_size
+                print(f"[{curr}/{total_runs}] ({progress:.1f}%) Optimizing {strat} on {coin} {tf} | 🧬 {iterations_per_task} Iterations...")
                 
                 # Check for kill signal
                 if os.path.exists("KILL_OPTIMIZER"):
@@ -550,57 +672,119 @@ class GeneticOptimizer:
                     break
 
                 try:
-                    # reduced generation count for massive scale
-                    # If we are retrying, maybe give it a bit more juice? standardized for now.
+                    # Unleashed parameters
                     
-                    lev_to_use = leverage
-                    if strat == 'mean-reversion-pro':
-                        lev_to_use = min(leverage, 3)
+                    # DURATION LOGIC: 3 Years for High TF, 60 Days for Low TF
+                    if tf in ['3m', '5m']:
+                        run_days = 60
+                    else:
+                        run_days = 1095 # 3 Years
                         
-                    res = self.run_optimization(strat, symbol=coin, timeframe=tf, generations=generations, population_size=population_size, leverage=lev_to_use)
+                    if task.get('is_grid'):
+                        # GRID SEARCH EXECUTION (Single Backtest)
+                        params = task['params']
+                        # Inject standard params if missing
+                        if 'leverage' not in params: params['leverage'] = 5
+                        
+                        # Direct Backtest call
+                        detailed_res = run_backtest(
+                            strat, coin, tf, 
+                            days=run_days,
+                            leverage=params['leverage'],
+                            params=params
+                        )
+                        
+                        # Normalize result structure to match optimization output
+                        if not detailed_res.get('error'):
+                            res = (params, detailed_res.get('pnl_perc', 0))
+                        else:
+                            res = None
+                    else:
+                        # Standard Genetic Optimization
+                        lev_min = min_leverage
+                        lev_max = max_leverage
+                        if strat == 'mean-reversion-pro':
+                            lev_max = min(max_leverage, 3)
+                            
+                        res = self.run_optimization(strat, symbol=coin, timeframe=tf, generations=generations, population_size=population_size, min_leverage=lev_min, max_leverage=lev_max, days=days)
+
                     if res:
                         best_params, pnl = res
-                        # STRICT FILTER: PnL > 15% AND Win Rate > 70% (Proxy for "Confidence")
                         
-                        # Actually, let's bump PnL req to 15% for now as "High Confidence"
-                        if pnl > 0.0: 
-                            result_entry = {
-                                "strategy": strat,
-                                "strategyId": strat,
-                                "symbol": coin,
-                                "timeframe": tf,
-                                "pnl": round(pnl, 2),
-                                "leverage": lev_to_use,
-                                "params": best_params,
-                                "id": str(uuid.uuid4()),
-                                "confidence": "High (Backtested)"
-                            }
-                            
-                            print(f"  ✅ FOUND WINNER | PnL: {pnl:.0f}% | {coin} {tf}")
-                            
-                            # Incremental Save
-                            current_data = []
-                            if os.path.exists(shortlist_path):
-                                try:
-                                    with open(shortlist_path, 'r') as f:
-                                        current_data = json.load(f)
-                                except:
-                                    current_data = []
-                            
-                            current_data.append(result_entry)
-                            # Sort continuously so the UI always shows best first
-                            current_data.sort(key=lambda x: x['pnl'], reverse=True)
-                            
-                            with open(shortlist_path, 'w') as f:
-                                json.dump(current_data, f, indent=2)
+                        # Optimization: Reuse result for Grid Search to avoid double-run
+                        if task.get('is_grid') and 'detailed_res' in locals():
+                             # detailed_res is already available from the grid execution block above
+                             pass
+                        else:
+                            # Run deep backtest for genetic results (or if detailed_res missing)
+                            detailed_res = run_backtest(
+                                strat, coin, tf, 
+                                days=run_days,
+                                leverage=best_params.get('leverage'),
+                                params=best_params
+                            )
 
-                            # BACKUP SAVE (Append Only)
-                            backup_path = os.path.join(os.path.dirname(self.output_path), 'results_history.json')
-                            try:
-                                with open(backup_path, 'a') as f:
-                                    f.write(json.dumps(result_entry) + "\n")
-                            except:
-                                pass
+                        if detailed_res.get('error'):
+                            print(f"  ⚠️ Deep Backtest Error: {detailed_res.get('error')}")
+                        
+                        deep_pnl = detailed_res.get('pnl_perc', 0)
+                        max_dd = detailed_res.get('max_drawdown', 100.0)
+                        
+                        # DRAWDOWN FILTER (Safety)
+                        if max_dd > 40.0:
+                             print(f"  ❌ Discarded due to High Drawdown: {max_dd:.2f}% > 40%")
+                        
+                        elif not detailed_res.get('error'):
+                             # Acceptance Logic (Positive PnL)
+                             # MANNUALLY SHORTLISTING (User Request): No automated trade count filter
+                             
+                             if deep_pnl > 0.0:
+                                print(f"  🏆 Shortlisted! Deep PnL: {deep_pnl:.2f}% | DD: {max_dd:.2f}%")
+                                result_entry = {
+                                    "strategy": strat,
+                                    "strategyId": strat,
+                                    "symbol": coin,
+                                    "timeframe": tf,
+                                    "pnl": detailed_res['pnl_perc'],
+                                    "sharpe": detailed_res['sharpe_ratio'],
+                                    "drawdown": detailed_res['max_drawdown'],
+                                    "winRate": detailed_res['win_rate'],
+                                    "totalTrades": detailed_res['total_trades'],
+                                    "winningStreak": detailed_res['winning_streak'],
+                                    "losingStreak": detailed_res['losing_streak'],
+                                    "numCandles": detailed_res['num_candles'],
+                                    "trades": detailed_res['trades_list'],
+                                    "leverage": best_params.get('leverage'),
+                                    "params": best_params,
+                                    "id": str(uuid.uuid4()),
+                                    "confidence": "High (Deep Backtested)"
+                                }
+                            
+                                print(f"  ✅ FOUND WINNER | PnL: {detailed_res['pnl_perc']:.0f}% | {coin} {tf}")
+                                
+                                # Incremental Save
+                                current_data = []
+                                if os.path.exists(shortlist_path):
+                                    try:
+                                        with open(shortlist_path, 'r') as f:
+                                            current_data = json.load(f)
+                                    except:
+                                        current_data = []
+                                
+                                current_data.append(result_entry)
+                                # Sort continuously so the UI always shows best first
+                                current_data.sort(key=lambda x: x['pnl'], reverse=True)
+                                
+                                with open(shortlist_path, 'w') as f:
+                                    json.dump(current_data, f, indent=2)
+
+                                # BACKUP SAVE (Append Only)
+                                backup_path = os.path.join(os.path.dirname(self.output_path), 'results_history.json')
+                                try:
+                                    with open(backup_path, 'a') as f:
+                                        f.write(json.dumps(result_entry) + "\n")
+                                except:
+                                    pass
 
                 except Exception as e:
                     # Capture specific "No data" errors or general failures
@@ -638,9 +822,11 @@ if __name__ == "__main__":
     parser.add_argument('--retry-skipped', action='store_true', help="Retry skipped coins")
     parser.add_argument('--gens', type=int, default=2, help="Generations")
     parser.add_argument('--pop', type=int, default=4, help="Population size")
-    parser.add_argument('--lev', type=int, default=5, help="Leverage")
+    parser.add_argument('--min-lev', type=int, default=3, help="Min Leverage")
+    parser.add_argument('--max-lev', type=int, default=10, help="Max Leverage")
     parser.add_argument('--symbols', default=None, help="Comma-separated symbols (e.g. BTC/USDT,ETH/USDT)")
     parser.add_argument('--tfs', default=None, help="Comma-separated timeframes (e.g. 1h,15m)")
+    parser.add_argument('--days', type=int, default=365, help="days to backtest")
     
     args = parser.parse_args()
     opt = GeneticOptimizer()
@@ -651,12 +837,14 @@ if __name__ == "__main__":
             retry_skipped=args.retry_skipped,
             generations=args.gens,
             population_size=args.pop,
-            leverage=args.lev,
+            min_leverage=args.min_lev,
+            max_leverage=args.max_lev,
+            days=args.days,
             symbols=args.symbols,
             timeframes=args.tfs
         )
     elif args.command == 'all':
-        opt.run_all(leverage=args.lev)
+        opt.run_all(min_leverage=args.min_lev, max_leverage=args.max_lev)
     else:
         # Assume command is strategyId
         opt.run_optimization(args.command)

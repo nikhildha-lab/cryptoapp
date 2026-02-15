@@ -1,13 +1,13 @@
 [
   {
     "symbol": "BTC/USDT",
-    "timeframe": "1h",
-    "strategy": "trend-momentum"
+    "timeframe": "3m",
+    "strategy": "volatility-scalper"
   },
   {
     "symbol": "BTC/USDT",
-    "timeframe": "1h",
-    "strategy": "triple-confirmation"
+    "timeframe": "5m",
+    "strategy": "mean-reversion-pro"
   },
   {
     "symbol": "BTC/USDT",
@@ -16,13 +16,28 @@
   },
   {
     "symbol": "BTC/USDT",
-    "timeframe": "1h",
-    "strategy": "mean-reversion-pro"
+    "timeframe": "4h",
+    "strategy": "trend-momentum"
   },
   {
     "symbol": "BTC/USDT",
-    "timeframe": "1h",
+    "timeframe": "4h",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "BTC/USDT",
+    "timeframe": "4h",
     "strategy": "volatility-scalper"
+  },
+  {
+    "symbol": "BTC/USDT",
+    "timeframe": "1d",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timeframe": "5m",
+    "strategy": "ndrt-strategy"
   },
   {
     "symbol": "ETH/USDT",
@@ -32,21 +47,236 @@
   {
     "symbol": "ETH/USDT",
     "timeframe": "1h",
-    "strategy": "triple-confirmation"
-  },
-  {
-    "symbol": "ETH/USDT",
-    "timeframe": "1h",
     "strategy": "ndrt-strategy"
   },
   {
     "symbol": "ETH/USDT",
     "timeframe": "1h",
-    "strategy": "mean-reversion-pro"
+    "strategy": "volatility-scalper"
   },
   {
     "symbol": "ETH/USDT",
+    "timeframe": "4h",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "ETH/USDT",
+    "timeframe": "1d",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "SOL/USDT",
+    "timeframe": "3m",
+    "strategy": "volatility-scalper"
+  },
+  {
+    "symbol": "SOL/USDT",
+    "timeframe": "5m",
+    "strategy": "volatility-scalper"
+  },
+  {
+    "symbol": "SOL/USDT",
+    "timeframe": "1h",
+    "strategy": "trend-momentum"
+  },
+  {
+    "symbol": "SOL/USDT",
+    "timeframe": "4h",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "SOL/USDT",
+    "timeframe": "4h",
+    "strategy": "volatility-scalper"
+  },
+  {
+    "symbol": "SOL/USDT",
+    "timeframe": "1d",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "ADA/USDT",
+    "timeframe": "3m",
+    "strategy": "trend-momentum"
+  },
+  {
+    "symbol": "ADA/USDT",
+    "timeframe": "3m",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "ADA/USDT",
+    "timeframe": "3m",
+    "strategy": "mean-reversion-pro"
+  },
+  {
+    "symbol": "ADA/USDT",
+    "timeframe": "5m",
+    "strategy": "trend-momentum"
+  },
+  {
+    "symbol": "ADA/USDT",
+    "timeframe": "1h",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "ADA/USDT",
     "timeframe": "1h",
     "strategy": "volatility-scalper"
+  },
+  {
+    "symbol": "ADA/USDT",
+    "timeframe": "4h",
+    "strategy": "trend-momentum"
+  },
+  {
+    "symbol": "ADA/USDT",
+    "timeframe": "4h",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "ADA/USDT",
+    "timeframe": "4h",
+    "strategy": "mean-reversion-pro"
+  },
+  {
+    "symbol": "ADA/USDT",
+    "timeframe": "4h",
+    "strategy": "volatility-scalper"
+  },
+  {
+    "symbol": "ADA/USDT",
+    "timeframe": "1d",
+    "strategy": "mean-reversion-pro"
+  },
+  {
+    "symbol": "DOT/USDT",
+    "timeframe": "3m",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "DOT/USDT",
+    "timeframe": "3m",
+    "strategy": "mean-reversion-pro"
+  },
+  {
+    "symbol": "DOT/USDT",
+    "timeframe": "1h",
+    "strategy": "trend-momentum"
+  },
+  {
+    "symbol": "DOT/USDT",
+    "timeframe": "4h",
+    "strategy": "trend-momentum"
+  },
+  {
+    "symbol": "DOT/USDT",
+    "timeframe": "4h",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "DOT/USDT",
+    "timeframe": "4h",
+    "strategy": "volatility-scalper"
+  },
+  {
+    "symbol": "DOT/USDT",
+    "timeframe": "1d",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "LINK/USDT",
+    "timeframe": "1h",
+    "strategy": "trend-momentum"
+  },
+  {
+    "symbol": "LINK/USDT",
+    "timeframe": "4h",
+    "strategy": "trend-momentum"
+  },
+  {
+    "symbol": "LINK/USDT",
+    "timeframe": "4h",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "LINK/USDT",
+    "timeframe": "1d",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "XRP/USDT",
+    "timeframe": "1h",
+    "strategy": "trend-momentum"
+  },
+  {
+    "symbol": "XRP/USDT",
+    "timeframe": "1h",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "XRP/USDT",
+    "timeframe": "4h",
+    "strategy": "volatility-scalper"
+  },
+  {
+    "symbol": "XRP/USDT",
+    "timeframe": "1d",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "XRP/USDT",
+    "timeframe": "1d",
+    "strategy": "mean-reversion-pro"
+  },
+  {
+    "symbol": "DOGE/USDT",
+    "timeframe": "3m",
+    "strategy": "trend-momentum"
+  },
+  {
+    "symbol": "DOGE/USDT",
+    "timeframe": "5m",
+    "strategy": "volatility-scalper"
+  },
+  {
+    "symbol": "DOGE/USDT",
+    "timeframe": "4h",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "DOGE/USDT",
+    "timeframe": "4h",
+    "strategy": "volatility-scalper"
+  },
+  {
+    "symbol": "AVAX/USDT",
+    "timeframe": "5m",
+    "strategy": "volatility-scalper"
+  },
+  {
+    "symbol": "AVAX/USDT",
+    "timeframe": "1h",
+    "strategy": "trend-momentum"
+  },
+  {
+    "symbol": "AVAX/USDT",
+    "timeframe": "1h",
+    "strategy": "ndrt-strategy"
+  },
+  {
+    "symbol": "AVAX/USDT",
+    "timeframe": "4h",
+    "strategy": "triple-confirmation"
+  },
+  {
+    "symbol": "AVAX/USDT",
+    "timeframe": "4h",
+    "strategy": "volatility-scalper"
+  },
+  {
+    "symbol": "AVAX/USDT",
+    "timeframe": "1d",
+    "strategy": "ndrt-strategy"
   }
 ]

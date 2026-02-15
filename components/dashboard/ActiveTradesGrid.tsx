@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Fragment } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { MoreHorizontal, Play, Pause, Square, Trash2, History, Clock, Info } from "lucide-react";
+import { MoreHorizontal, Play, Pause, Square, Trash2, History, Clock, Info, ChevronDown, ChevronRight, RefreshCw, ArrowUpRight, ArrowDownRight, Target, ShieldAlert } from "lucide-react";
 import {
     Sheet,
     SheetContent,
@@ -30,6 +30,13 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 interface Trade {
     id: string;
@@ -51,6 +58,9 @@ interface Trade {
     leverage: number;
     exchange: string;
     position?: "long" | "short" | null;
+    entryPrice?: number;
+    currentSL?: number;
+    currentTP?: number;
     config?: any; // To hold specific strategy parameters
 }
 
@@ -61,6 +71,10 @@ interface HistoricalTrade {
     price: number;
     pnl?: number;
     symbol: string;
+    entryPrice?: number;
+    current_sl?: number;
+    current_tp?: number;
+    trailing_sl?: number;
 }
 
 export function ActiveTradesGrid() {
@@ -69,12 +83,13 @@ export function ActiveTradesGrid() {
     const [tradeHistory, setTradeHistory] = useState<HistoricalTrade[]>([]);
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
     const [error, setError] = useState(false);
+    const [strategyFilter, setStrategyFilter] = useState<string>("all");
 
     const fetchStrategies = useCallback(async () => {
         try {
             const res = await fetch("/api/dashboard/data");
             const data = await res.json();
-            console.log("🔍 RAW API DATA:", data.strategies?.[0]); // Debug: Check first strategy
+            // console.log("🔍 RAW API DATA:", data.strategies?.[0]); // Debug: Check first strategy
             if (data.strategies) {
                 const mappedStrategies = data.strategies.map((s: any) => {
                     const mapped = {
@@ -87,7 +102,7 @@ export function ActiveTradesGrid() {
                         timeframe: s.timeframe || '1h',
                         rating: 'N/A',
                         category: 'Custom',
-                        status: s.status === 'active' ? 'Running' : s.status === 'paused' ? 'Paused' : 'Stopped',
+                        status: (s.status === 'active' || s.status === 'Running') ? 'Running' : s.status === 'paused' ? 'Paused' : 'Stopped',
                         pnl: (s.pnl || 0) + (s.unrealized_pnl || 0),
                         pnlPerc: (((s.pnl || 0) + (s.unrealized_pnl || 0)) / (s.capital || 1000)) * 100,
                         unrealizedPnL: s.unrealized_pnl || 0,
@@ -97,6 +112,9 @@ export function ActiveTradesGrid() {
                         capital: s.capital || 0,
                         leverage: s.leverage || 1,
                         position: s.position, // Fix: Map position from API
+                        entryPrice: s.entry_price || 0,
+                        currentSL: s.current_sl || 0,
+                        currentTP: s.current_tp || 0,
                         config: {
                             stop_loss: s.stop_loss,
                             take_profit: s.take_profit,
@@ -115,18 +133,13 @@ export function ActiveTradesGrid() {
                     };
 
                     // COMPREHENSIVE DEBUG LOGGING
-                    console.log(`📦 STRATEGY "${s.strategyId}":`, {
-                        raw_unrealizedPnL: s.unrealizedPnL,
-                        raw_type: typeof s.unrealizedPnL,
-                        mapped_unrealizedPnL: mapped.unrealizedPnL,
-                        mapped_type: typeof mapped.unrealizedPnL,
-                        fallback_triggered: s.unrealizedPnL ? "NO" : "YES (|| 0)"
-                    });
+                    // console.log(`📦 STRATEGY "${s.strategyId}":`, {
+                    //    raw_unrealizedPnL: s.unrealizedPnL,
+                    //    mapped_unrealizedPnL: mapped.unrealizedPnL,
+                    // });
 
                     return mapped;
                 });
-                console.log("📊 MAPPED STRATEGIES (first):", mappedStrategies[0]);
-                console.log("🎯 SETTING STATE WITH:", mappedStrategies.length, "strategies");
                 setStrategies(mappedStrategies);
                 setError(false);
             }
@@ -214,8 +227,32 @@ export function ActiveTradesGrid() {
         }
     };
 
+    const handleReset = async (instanceId: string) => {
+        if (!confirm("Are you sure you want to RESET this strategy? This will clear all PnL history, win rates, and trade counters for this instance. It acts like a fresh deployment.")) return;
+
+        try {
+            const res = await fetch("/api/deploy/reset-instance", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ instanceId })
+            });
+
+            if (res.ok) {
+                toast.success("Instance reset successfully");
+                fetchStrategies();
+            } else {
+                toast.error("Failed to reset instance");
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error("Error resetting instance");
+        }
+    };
+
     const handleStopAll = async () => {
-        const count = activeStrategies.length;
+        // defined below activeStrategies for access or passed in? 
+        // We can access state strategies directly
+        const count = strategies.filter(s => s.status === 'Running').length;
         if (count === 0) return;
 
         if (!confirm(`CAUTION: This will immediately stop ALL ${count} running strategies across both Live and Paper modes. Are you sure?`)) return;
@@ -238,6 +275,33 @@ export function ActiveTradesGrid() {
         }
     };
 
+    const handleResetAll = async () => {
+        const count = strategies.filter(s => s.status === 'Running').length;
+        if (count === 0 && !confirm("No running strategies found. Do you want to reset ALL strategies (including stopped ones)?")) return;
+
+        // Confirmation is safer
+        if (!confirm(`CAUTION: This will RESET PnL and Statistics for ALL active strategies. Positions will be cleared. This action cannot be undone. Are you sure?`)) return;
+
+        try {
+            const res = await fetch("/api/deploy/reset-all", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({})
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                toast.success(data.message || "All strategies reset successfully");
+                fetchStrategies();
+            } else {
+                toast.error("Failed to reset strategies");
+            }
+        } catch (e) {
+            console.error(e);
+            toast.error("Error resetting all strategies");
+        }
+    };
+
     const handleViewHistory = (trade: Trade) => {
         setSelectedStrategy(trade);
         fetchHistory(trade.strategy);
@@ -245,8 +309,16 @@ export function ActiveTradesGrid() {
     };
 
     const activeStrategies = strategies.filter(s => s.status === 'Running');
-    const liveStrategies = activeStrategies.filter(s => s.mode === 'live');
-    const paperStrategies = activeStrategies.filter(s => s.mode === 'paper');
+
+    // Apply Filter
+    const filteredStrategies = strategyFilter === "all"
+        ? activeStrategies
+        : activeStrategies.filter(s => s.strategy === strategyFilter);
+
+    const liveStrategies = filteredStrategies.filter(s => s.mode === 'live');
+    const paperStrategies = filteredStrategies.filter(s => s.mode === 'paper');
+
+    const uniqueStrategies = Array.from(new Set(strategies.map(s => s.strategy))).sort();
 
     return (
         <Card className="border-slate-200 dark:border-white/10 shadow-sm overflow-hidden">
@@ -258,17 +330,42 @@ export function ActiveTradesGrid() {
                             Real-time monitoring of your deployed strategy instances.
                         </CardDescription>
                     </div>
-                    {activeStrategies.length > 0 && (
-                        <Button
-                            variant="destructive"
-                            size="sm"
-                            className="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border-red-500/20 gap-2 font-bold"
-                            onClick={handleStopAll}
-                        >
-                            <Trash2 className="h-4 w-4" />
-                            Stop All Instances
-                        </Button>
-                    )}
+                    <div className="flex items-center gap-3">
+                        <Select value={strategyFilter} onValueChange={setStrategyFilter}>
+                            <SelectTrigger className="w-[180px] h-8 text-xs font-medium bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10">
+                                <SelectValue placeholder="Filter Strategy" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">All Strategies</SelectItem>
+                                {uniqueStrategies.map(s => (
+                                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+
+                        {activeStrategies.length > 0 && (
+                            <>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 border-orange-500/20 text-orange-500 hover:bg-orange-500 hover:text-white gap-2 font-bold text-xs"
+                                    onClick={handleResetAll}
+                                >
+                                    <RefreshCw className="h-3.5 w-3.5" />
+                                    Reset All PnL
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    className="bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border-red-500/20 gap-2 font-bold h-8 text-xs"
+                                    onClick={handleStopAll}
+                                >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                    Stop All
+                                </Button>
+                            </>
+                        )}
+                    </div>
                 </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -292,9 +389,12 @@ export function ActiveTradesGrid() {
                                 onPause={handlePause}
                                 onResume={handleResume}
                                 onViewHistory={handleViewHistory}
+                                onReset={handleReset}
                             />
                         ) : (
-                            <div className="p-8 text-center text-muted-foreground">No active live strategies. Deploy one from the Strategy Lab.</div>
+                            <div className="p-8 text-center text-muted-foreground">
+                                {strategyFilter !== "all" ? `No active ${strategyFilter} live strategies.` : "No active live strategies. Deploy one from the Strategy Lab."}
+                            </div>
                         )}
                     </TabsContent>
                     <TabsContent value="paper" className="p-0">
@@ -309,9 +409,12 @@ export function ActiveTradesGrid() {
                                 onPause={handlePause}
                                 onResume={handleResume}
                                 onViewHistory={handleViewHistory}
+                                onReset={handleReset}
                             />
                         ) : (
-                            <div className="p-8 text-center text-muted-foreground">No active paper strategies. Deploy one from the Strategy Lab.</div>
+                            <div className="p-8 text-center text-muted-foreground">
+                                {strategyFilter !== "all" ? `No active ${strategyFilter} paper strategies.` : "No active paper strategies. Deploy one from the Strategy Lab."}
+                            </div>
                         )}
                     </TabsContent>
                 </Tabs>
@@ -381,13 +484,39 @@ export function ActiveTradesGrid() {
     );
 }
 
-function TradesTable({ trades, onStop, onPause, onResume, onViewHistory }: {
+function TradesTable({ trades, onStop, onPause, onResume, onViewHistory, onReset }: {
     trades: Trade[],
     onStop: (id: string) => void,
     onPause: (id: string) => void,
     onResume: (id: string) => void,
-    onViewHistory: (t: Trade) => void
+    onViewHistory: (t: Trade) => void,
+    onReset: (id: string) => void
 }) {
+    const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+    const [instanceTrades, setInstanceTrades] = useState<Record<string, HistoricalTrade[]>>({});
+
+    const toggleRow = async (uniqueId: string, fetchId: string) => {
+        const newExpanded = new Set(expandedRows);
+        if (newExpanded.has(uniqueId)) {
+            newExpanded.delete(uniqueId);
+        } else {
+            newExpanded.add(uniqueId);
+            // Fetch trades if not already loaded (use fetchId which is instanceName)
+            if (!instanceTrades[uniqueId]) {
+                try {
+                    const res = await fetch(`/api/dashboard/trades?instanceId=${fetchId}`);
+                    const data = await res.json();
+                    if (data.success) {
+                        setInstanceTrades(prev => ({ ...prev, [uniqueId]: data.trades }));
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch instance trades", e);
+                }
+            }
+        }
+        setExpandedRows(newExpanded);
+    };
+
     // Sort trades: Open positions first
     const sortedTrades = [...trades].sort((a, b) => {
         // 1. Open Positions First
@@ -405,150 +534,254 @@ function TradesTable({ trades, onStop, onPause, onResume, onViewHistory }: {
             <TableHeader>
                 <TableRow className="bg-muted/50 border-b border-white/5">
                     <TableHead className="w-[140px] text-[10px] font-bold uppercase tracking-wider text-slate-400 py-3">Trade Status</TableHead>
-                    <TableHead className="w-[200px] text-[10px] font-bold uppercase tracking-wider text-slate-400 py-3">Strategy & Instance</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Coin</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-center">Leverage</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right">Capital</TableHead>
+                    <TableHead className="w-[180px] text-[10px] font-bold uppercase tracking-wider text-slate-400 py-3">Strategy & Instance</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Entry</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Targets</TableHead>
                     <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right">PnL (Total)</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right">PnL (Unrealized)</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right">Win Rate</TableHead>
-                    <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right">Trades</TableHead>
-                    <TableHead className="w-[100px] text-right text-[10px] font-bold uppercase tracking-wider text-slate-400 pr-6">Actions</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right">PnL (Open)</TableHead>
+                    <TableHead className="text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right">Stats</TableHead>
+                    <TableHead className="w-[120px] text-right text-[10px] font-bold uppercase tracking-wider text-slate-400 pr-6">Actions</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
                 {sortedTrades.map((trade) => (
-                    <TableRow key={trade.id} className="hover:bg-slate-50 dark:hover:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 transition-colors">
-                        <TableCell className="py-4">
-                            {trade.position ? (
-                                <Badge className={`${trade.position === 'long' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'} gap-1.5 px-2 py-1 font-bold text-[10px] uppercase tracking-wider`}>
-                                    <div className={`h-1.5 w-1.5 rounded-full ${trade.position === 'long' ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
-                                    Active {trade.position}
-                                </Badge>
-                            ) : trade.status === 'Paused' ? (
-                                <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/20 gap-1.5 px-2 py-1 font-bold text-[10px] uppercase tracking-wider">
-                                    <Pause className="h-2 w-2" />
-                                    Paused
-                                </Badge>
-                            ) : (
-                                <Badge variant="outline" className="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 px-2 py-1 font-bold text-[10px] uppercase tracking-wider">
-                                    Sidelined
-                                </Badge>
-                            )}
-                        </TableCell>
-                        <TableCell className="py-4">
-                            <div className="flex flex-col">
-                                <span className="font-bold text-slate-900 dark:text-white text-sm tracking-tight">
-                                    {trade.instanceName || trade.strategy}
-                                </span>
-                                <div className="flex items-center gap-1.5 mt-1">
-                                    <span className="text-[10px] text-slate-500 font-medium">
-                                        {trade.strategy} | {trade.mode?.toUpperCase() || "PAPER"}
-                                    </span>
-                                    {trade.config && (
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Info className="h-3 w-3 text-slate-400 cursor-help hover:text-blue-500 transition-colors" />
-                                                </TooltipTrigger>
-                                                <TooltipContent className="bg-slate-900 border-slate-800 text-white text-xs p-3 shadow-xl">
-                                                    <p className="font-bold mb-2 text-blue-400 uppercase tracking-wider text-[10px]">Strategy Config</p>
-                                                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-mono">
-                                                        {Object.entries(trade.config).map(([key, value]) => (
-                                                            value !== undefined && value !== null ? (
-                                                                <div key={key} className="flex flex-col">
-                                                                    <span className="text-[9px] text-slate-500 uppercase">{key.replace(/_/g, ' ')}</span>
-                                                                    <span className="font-bold">{String(value)}</span>
-                                                                </div>
-                                                            ) : null
-                                                        ))}
-                                                    </div>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
+                    <Fragment key={trade.id}>
+                        <TableRow
+
+                            className="hover:bg-slate-50 dark:hover:bg-white/[0.02] border-b border-slate-100 dark:border-white/5 transition-colors cursor-pointer group"
+                            onClick={() => toggleRow(trade.id, trade.instanceName || trade.id)}
+                        >
+                            <TableCell className="py-4 pl-4">
+                                <div className="flex items-center gap-2">
+                                    {expandedRows.has(trade.id) ? (
+                                        <ChevronDown className="h-4 w-4 text-slate-400" />
+                                    ) : (
+                                        <ChevronRight className="h-4 w-4 text-slate-400 opacity-50 group-hover:opacity-100 transition-opacity" />
+                                    )}
+                                    {trade.position ? (
+                                        <Badge className={`${trade.position === 'long' ? 'bg-green-500/10 text-green-500 border-green-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20'} gap-1.5 px-2 py-1 font-bold text-[10px] uppercase tracking-wider`}>
+                                            <div className={`h-1.5 w-1.5 rounded-full ${trade.position === 'long' ? 'bg-green-500' : 'bg-red-500'} animate-pulse`} />
+                                            Active {trade.position}
+                                        </Badge>
+                                    ) : trade.status === 'Paused' ? (
+                                        <Badge className="bg-orange-500/10 text-orange-500 border-orange-500/20 gap-1.5 px-2 py-1 font-bold text-[10px] uppercase tracking-wider">
+                                            <Pause className="h-2 w-2" />
+                                            Paused
+                                        </Badge>
+                                    ) : (
+                                        <Badge variant="outline" className="bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 px-2 py-1 font-bold text-[10px] uppercase tracking-wider">
+                                            Sidelined
+                                        </Badge>
                                     )}
                                 </div>
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                            <Badge variant="outline" className="text-[10px] font-mono bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300">
-                                {trade.coin}
-                            </Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                            <Badge variant="secondary" className="text-[10px] font-mono bg-blue-500/10 text-blue-500 border-none">
-                                {trade.leverage}x
-                            </Badge>
-                        </TableCell>
-                        <TableCell className="text-right text-xs font-mono font-bold text-slate-900 dark:text-white">
-                            ${Number(trade.capital ?? 0).toLocaleString()}
-                        </TableCell>
-                        <TableCell className={`text-right text-xs font-mono font-bold ${(trade.pnl ?? 0) >= 0 ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"}`}>
-                            ${(trade.pnl ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                            <div className="text-[10px] opacity-70">
-                                {(trade.pnlPerc ?? 0) >= 0 ? "+" : ""}{(trade.pnlPerc ?? 0).toFixed(2)}%
-                            </div>
-                        </TableCell>
-                        <TableCell className={`text-right text-xs font-mono font-bold ${(trade.unrealizedPnL ?? 0) >= 0 ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"}`}>
-                            {trade.position ? (
-                                <>
-                                    ${(trade.unrealizedPnL ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                    <div className="text-[10px] opacity-70">
-                                        {(trade.unrealizedPnLPerc ?? 0) >= 0 ? "+" : ""}{(trade.unrealizedPnLPerc ?? 0).toFixed(2)}%
+                            </TableCell>
+                            <TableCell className="py-4">
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-slate-900 dark:text-white text-sm tracking-tight">
+                                        {trade.instanceName || trade.strategy}
+                                    </span>
+                                    <div className="flex items-center gap-1.5 mt-1">
+                                        <span className="text-[10px] text-slate-500 font-medium">
+                                            {trade.strategy} | {trade.mode?.toUpperCase() || "PAPER"}
+                                        </span>
+                                        {trade.config && (
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Info className="h-3 w-3 text-slate-400 cursor-help hover:text-blue-500 transition-colors" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent className="bg-slate-900 border-slate-800 text-white text-xs p-3 shadow-xl">
+                                                        <p className="font-bold mb-2 text-blue-400 uppercase tracking-wider text-[10px]">Strategy Config</p>
+                                                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 font-mono">
+                                                            {Object.entries(trade.config).map(([key, value]) => (
+                                                                value !== undefined && value !== null ? (
+                                                                    <div key={key} className="flex flex-col">
+                                                                        <span className="text-[9px] text-slate-500 uppercase">{key.replace(/_/g, ' ')}</span>
+                                                                        <span className="font-bold">{String(value)}</span>
+                                                                    </div>
+                                                                ) : null
+                                                            ))}
+                                                        </div>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        )}
                                     </div>
-                                </>
-                            ) : (
-                                <span className="text-slate-400 dark:text-slate-600 font-normal">-</span>
-                            )}
-                        </TableCell>
-                        <TableCell className="text-right text-xs font-mono font-medium text-slate-600 dark:text-slate-300">
-                            {(trade.winRate ?? 0).toFixed(1)}%
-                        </TableCell>
-                        <TableCell className="text-right text-xs font-mono font-medium text-slate-500 dark:text-slate-400">{(trade.trades ?? 0)}</TableCell>
-                        <TableCell className="text-right pr-6">
-                            <div className="flex items-center justify-end gap-1">
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-all"
-                                    onClick={() => onViewHistory(trade)}
-                                    title="View Trade History"
-                                >
-                                    <History className="h-4 w-4" />
-                                </Button>
-                                {trade.status === 'Paused' ? (
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 text-orange-500 hover:text-orange-600 hover:bg-orange-500/10 rounded-lg transition-all"
-                                        onClick={() => onResume(trade.id)}
-                                        title="Resume Strategy"
-                                    >
-                                        <Play className="h-4 w-4 fill-current" />
-                                    </Button>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-col gap-1">
+                                    <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="text-[9px] font-mono bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300">
+                                            {trade.coin}
+                                        </Badge>
+                                        <Badge variant="secondary" className="text-[9px] font-mono bg-blue-500/10 text-blue-500 border-none px-1">
+                                            {trade.leverage}x
+                                        </Badge>
+                                    </div>
+                                    <div className="text-[10px] font-mono text-slate-500">
+                                        Entry: <span className="text-slate-300">{trade.entryPrice ? `$${trade.entryPrice.toLocaleString()}` : '-'}</span>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-col gap-1.5 font-mono text-[9px]">
+                                    <div className="flex items-center gap-1.5 text-red-400">
+                                        <ShieldAlert className="h-3 w-3" />
+                                        <span>SL: {trade.currentSL ? `$${trade.currentSL.toFixed(4)}` : '-'}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-green-400">
+                                        <Target className="h-3 w-3" />
+                                        <span>TP: {trade.currentTP ? `$${trade.currentTP.toFixed(4)}` : '-'}</span>
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell className={`text-right text-xs font-mono font-bold ${(trade.pnl ?? 0) >= 0 ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"}`}>
+                                ${(trade.pnl ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                <div className="text-[10px] opacity-70">
+                                    {(trade.pnlPerc ?? 0) >= 0 ? "+" : ""}{(trade.pnlPerc ?? 0).toFixed(2)}%
+                                </div>
+                            </TableCell>
+                            <TableCell className={`text-right text-xs font-mono font-bold ${(trade.unrealizedPnL ?? 0) >= 0 ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"}`}>
+                                {trade.position ? (
+                                    <>
+                                        ${(trade.unrealizedPnL ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                        <div className="text-[10px] opacity-70">
+                                            {(trade.unrealizedPnLPerc ?? 0) >= 0 ? "+" : ""}{(trade.unrealizedPnLPerc ?? 0).toFixed(2)}%
+                                        </div>
+                                    </>
                                 ) : (
+                                    <span className="text-slate-400 dark:text-slate-600 font-normal">-</span>
+                                )}
+                            </TableCell>
+                            <TableCell>
+                                <div className="flex flex-col items-end gap-1">
+                                    <div className="text-[10px] font-mono font-medium text-slate-600 dark:text-slate-300">
+                                        WR: {(trade.winRate ?? 0).toFixed(1)}%
+                                    </div>
+                                    <div className="text-[10px] font-mono text-slate-500">
+                                        Trades: {trade.trades ?? 0}
+                                    </div>
+                                </div>
+                            </TableCell>
+                            <TableCell className="text-right pr-6">
+                                <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                                    <Button
+                                        variant="ghost"
+                                        size="xs"
+                                        className={`h-8 px-2 text-[10px] font-bold uppercase tracking-wider ${expandedRows.has(trade.id) ? 'bg-blue-500 text-white hover:bg-blue-600 hover:text-white' : 'text-slate-400 hover:text-blue-500 hover:bg-blue-500/10'}`}
+                                        onClick={(e) => { e.stopPropagation(); toggleRow(trade.id, trade.instanceName || trade.id); }}
+                                    >
+                                        {expandedRows.has(trade.id) ? "Hide Logs" : "View Logs"}
+                                    </Button>
+                                    {trade.status === 'Paused' ? (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-orange-500 hover:text-orange-600 hover:bg-orange-500/10 rounded-lg transition-all"
+                                            onClick={() => onResume(trade.id)}
+                                            title="Resume Strategy"
+                                        >
+                                            <Play className="h-4 w-4 fill-current" />
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-slate-400 hover:text-orange-500 hover:bg-orange-500/10 rounded-lg transition-all"
+                                            onClick={() => onPause(trade.id)}
+                                            title="Pause Strategy"
+                                        >
+                                            <Pause className="h-4 w-4" />
+                                        </Button>
+                                    )}
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        className="h-8 w-8 text-slate-400 hover:text-orange-500 hover:bg-orange-500/10 rounded-lg transition-all"
-                                        onClick={() => onPause(trade.id)}
-                                        title="Pause Strategy"
+                                        className="h-8 w-8 text-slate-400 hover:text-blue-500 hover:bg-blue-500/10 rounded-lg transition-all"
+                                        onClick={() => onReset(trade.id)}
+                                        title="Reset PnL & Stats"
                                     >
-                                        <Pause className="h-4 w-4" />
+                                        <RefreshCw className="h-4 w-4" />
                                     </Button>
-                                )}
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
-                                    onClick={() => onStop(trade.id)}
-                                    title="Stop Strategy"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </TableCell>
-                    </TableRow>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-8 w-8 text-slate-400 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all"
+                                        onClick={() => onStop(trade.id)}
+                                        title="Stop Strategy"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                        {expandedRows.has(trade.id) && (
+                            <TableRow className="bg-slate-50/50 dark:bg-white/[0.01] hover:bg-slate-50 dark:hover:bg-white/[0.01]">
+                                <TableCell colSpan={10} className="p-0 border-b border-slate-100 dark:border-white/5">
+                                    <div className="p-4 pl-12 pr-6">
+                                        <div className="rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-950 overflow-hidden">
+                                            <div className="px-4 py-2 border-b border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-slate-900 flex justify-between items-center">
+                                                <h4 className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+                                                    <History className="h-3 w-3" />
+                                                    Trade History for {trade.instanceName}
+                                                </h4>
+                                                <span className="text-[10px] text-slate-400 font-mono">{trade.id.substring(0, 8)}</span>
+                                            </div>
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow className="bg-transparent border-0 hover:bg-transparent">
+                                                        <TableHead className="h-8 text-[10px] font-bold uppercase tracking-wider text-slate-400">Timestamp</TableHead>
+                                                        <TableHead className="h-8 text-[10px] font-bold uppercase tracking-wider text-slate-400">Side</TableHead>
+                                                        <TableHead className="h-8 text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right">Price</TableHead>
+                                                        <TableHead className="h-8 text-[10px] font-bold uppercase tracking-wider text-slate-400">Entry</TableHead>
+                                                        <TableHead className="h-8 text-[10px] font-bold uppercase tracking-wider text-slate-400">Targets (SL/TP)</TableHead>
+                                                        <TableHead className="h-8 text-[10px] font-bold uppercase tracking-wider text-slate-400 text-right">Realized PnL</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {(instanceTrades[trade.id] || []).map((t, idx) => (
+                                                        <TableRow key={idx} className="border-0 hover:bg-slate-50 dark:hover:bg-white/5">
+                                                            <TableCell className="py-2 text-[10px] font-mono text-slate-500">
+                                                                {new Date(t.timestamp).toLocaleString()}
+                                                            </TableCell>
+                                                            <TableCell className="py-2">
+                                                                <Badge className={`${t.side === 'BUY' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'} border-none px-1.5 py-0 text-[9px] font-bold tracking-wider uppercase`}>
+                                                                    {t.side}
+                                                                </Badge>
+                                                            </TableCell>
+                                                            <TableCell className="py-2 text-[10px] font-mono font-medium text-right">
+                                                                ${(t.price ?? 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                            </TableCell>
+                                                            <TableCell className="py-2 text-[10px] font-mono text-slate-500">
+                                                                {t.entryPrice ? `$${t.entryPrice.toLocaleString()}` : '-'}
+                                                            </TableCell>
+                                                            <TableCell className="py-2 text-[9px] font-mono">
+                                                                <div className="flex flex-col gap-0.5">
+                                                                    <span className="text-red-400">SL: {t.current_sl ? t.current_sl.toFixed(4) : '-'}</span>
+                                                                    <span className="text-green-400">TP: {t.current_tp ? t.current_tp.toFixed(4) : '-'}</span>
+                                                                </div>
+                                                            </TableCell>
+                                                            <TableCell className={`py-2 text-[10px] font-mono font-bold text-right ${t.pnl && t.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                                                {t.pnl ? `${t.pnl >= 0 ? '+' : ''}${t.pnl.toFixed(2)}%` : '-'}
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    ))}
+                                                    {(instanceTrades[trade.id] || []).length === 0 && (
+                                                        <TableRow className="border-0 hover:bg-transparent">
+                                                            <TableCell colSpan={6} className="h-20 text-center text-xs text-slate-400">
+                                                                No trade history available for this instance.
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        </div>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </Fragment>
                 ))}
             </TableBody>
         </Table>

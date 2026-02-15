@@ -1,4 +1,4 @@
-from .base import BaseStrategy
+from strategies.base import BaseStrategy
 import backtrader as bt
 
 class VolatilityScalper(BaseStrategy):
@@ -39,7 +39,7 @@ class VolatilityScalper(BaseStrategy):
         self.target_ema_fast = bt.indicators.EMA(self.target, period=self.params.fast_ema)
         self.target_ema_slow = bt.indicators.EMA(self.target, period=self.params.slow_ema)
         
-        if self.btc:
+        if self.btc is not None:
             self.btc_atr = bt.indicators.ATR(self.btc, period=self.params.ltr_period)
             
         self.crossover = bt.indicators.CrossOver(self.target_ema_fast, self.target_ema_slow)
@@ -50,7 +50,7 @@ class VolatilityScalper(BaseStrategy):
         if not self.position:
             # Volatility Check with min/max bounds
             is_volatile = True
-            if self.btc:
+            if self.btc is not None:
                 # Normalized ATR (ATR / Price) to compare volatility across different price scales
                 target_norm_vol = self.target_atr[0] / self.target.close[0]
                 btc_norm_vol = self.btc_atr[0] / self.btc.close[0]

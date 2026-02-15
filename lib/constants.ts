@@ -1,7 +1,8 @@
 export interface Strategy {
     id: string;
     name: string;
-    category: "Trend" | "Mean Reversion" | "Breakout" | "Volatility" | "Multi-Indicator" | "Scalping";
+    type?: string;
+    category: "Trend" | "Mean Reversion" | "Breakout" | "Volatility" | "Multi-Indicator" | "Scalping" | "AI";
     description: string;
     rating?: "A+" | "A" | "B" | "C" | "D" | "F";
     logic: {
@@ -151,5 +152,21 @@ export const STRATEGIES: Strategy[] = [
         params: { symbol: "BTC/USDT", timeframe: "1h" },
         optimalConditions: "Ranging markets with high oscillator sensitivity",
         deployment: { recommendedCapital: 2000, leverage: "1-3x" }
+    },
+    {
+        id: "ai-agent-pro",
+        name: "AI Agent (Gemini 1.5 Pro)",
+        category: "AI",
+        description: "Autonomous reasoning engine powered by Google's Gemini 1.5 Pro. Analyzes market structure, momentum, and order flow in real-time.",
+        rating: "A+",
+        logic: {
+            entry: "AI Confirmation (Trend + Momentum + Volume)",
+            exit: "AI Reversal Signal OR Risk Limits",
+            stopLoss: "Dynamic (AI Determined)",
+            takeProfit: "Dynamic (AI Determined)"
+        },
+        params: { symbol: "BTC/USDT", timeframe: "1h" },
+        optimalConditions: "Complex market conditions requiring semantic analysis",
+        deployment: { recommendedCapital: 1000, leverage: "5x", bestSymbols: ["BTC/USDT", "ETH/USDT", "SOL/USDT"] }
     }
 ];

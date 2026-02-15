@@ -22,6 +22,11 @@ export async function GET(request: Request) {
             trades = trades.filter((t: any) => t.strategyId === strategyId);
         }
 
+        const instanceId = searchParams.get('instanceId');
+        if (instanceId) {
+            trades = trades.filter((t: any) => t.instanceId === instanceId);
+        }
+
         return NextResponse.json({ success: true, trades });
     } catch (error: any) {
         return NextResponse.json({ success: false, error: "Failed to fetch trades" }, { status: 500 });

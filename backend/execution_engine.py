@@ -5,7 +5,7 @@ import time
 import json
 import ccxt
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
 from exchanges.factory import get_exchange_adapter
 from notifiers import NotificationHub
@@ -23,6 +23,7 @@ TRADES_FILE = os.path.join(DATA_DIR, 'trade_history.json')
 HEARTBEAT_FILE = os.path.join(DATA_DIR, 'engine_heartbeat.json')
 OPTIMIZED_PARAMS_FILE = os.path.join(DATA_DIR, 'optimized_params.json')
 FEED_HEALTH_FILE = os.path.join(DATA_DIR, 'feed_health.json')
+COMMANDS_FILE = os.path.join(DATA_DIR, 'commands.json')
 
 # Ensure data directory exists
 os.makedirs(DATA_DIR, exist_ok=True)
@@ -48,6 +49,7 @@ class ExecutionEngine:
         
         # Initialize AI Agent
         self.ai_agent = AIAgent()
+        self.ai_analysis_cache = {} # Cache for AI decisions {key: {timestamp, decision}}
         self.last_ml_training = datetime.now() - timedelta(hours=2) # Force training on start
         
         self.log("System", "Execution Engine Initialized (Multi-Exchange Mode)")
@@ -90,7 +92,7 @@ class ExecutionEngine:
         except Exception as e:
             print(f"Failed to update heartbeat: {e}")
 
-    def log_trade(self, strategy_id, symbol, side, price, pnl_perc=None, reason=None, leverage=5, timeframe=None, status="FILLED", unrealized_pnl=None, entry_price=None, capital=None, signals=None, exchange=None, instance_id=None):
+    def log_trade(self, strategy_id, symbol, side, price, pnl_perc=None, reason=None, leverage=5, timeframe=None, status="FILLED", unrealized_pnl=None, entry_price=None, capital=None, signals=None, exchange=None, instance_id=None, **kwargs):
         trade_entry = {
             "id": str(uuid.uuid4()),
             "timestamp": datetime.now().isoformat(),
@@ -108,8 +110,13 @@ class ExecutionEngine:
             "entryPrice": entry_price,
             "capital": capital,
             "signals": signals,
-            "exchange": exchange
+            "exchange": exchange,
+            "failed": False,
+            "current_sl": kwargs.get('current_sl'),
+            "current_tp": kwargs.get('current_tp'),
+            "trailing_sl": kwargs.get('trailing_sl')
         }
+
         
         try:
             trades = []
@@ -128,6 +135,42 @@ class ExecutionEngine:
         except Exception as e:
             self.log("System", f"Failed to record trade in history: {e}", "error")
     
+    
+    def clear_trade_history(self, instance_id):
+        try:
+            if not os.path.exists(TRADES_FILE): return
+            
+            with open(TRADES_FILE, 'r') as f:
+                try:
+                    trades = json.load(f)
+                except:
+                    return
+
+            # Keep trades that DO NOT match the instance_id
+            # We check both instanceId and strategyId to be safe, but instanceId is primary
+            new_trades = [t for t in trades if t.get('instanceId') != instance_id and t.get('strategyId') != instance_id]
+            
+            with open(TRADES_FILE, 'w') as f:
+                json.dump(new_trades, f, indent=2)
+                
+            self.log("System", f"Cleared trade history for {instance_id}", "info")
+        except Exception as e:
+            self.log("System", f"Failed to clear trade history: {e}", "error")
+
+    def clear_all_trade_history(self):
+        try:
+            if not os.path.exists(TRADES_FILE): return
+            
+            # Wipe the file with an empty list
+            with open(TRADES_FILE, 'w') as f:
+                json.dump([], f, indent=2)
+                
+            self.log("System", "🧹 Cleared GLOBAL trade history.", "warning")
+        except Exception as e:
+            self.log("System", f"Failed to clear global trade history: {e}", "error")
+
+
+
     def log(self, source, message, level="info"):
         entry = {
             "id": str(uuid.uuid4()),
@@ -226,11 +269,20 @@ class ExecutionEngine:
             disk_map = {s['id']: s for s in current_on_disk if 'id' in s}
             
             # Update disk map with our in-memory changes
+            # Update disk map with our in-memory changes, BUT RESPECT EXTERNAL STOPS
             for strat in self.strategies:
-                if 'id' in strat:
-                    # We only update keys that the engine controls
-                    # Preserving any other keys or new entries
-                    disk_map[strat['id']] = strat
+                sid = strat.get('id')
+                if not sid: continue
+
+                # SAFETY CHECK: If disk version is stopped, DO NOT overwrite with active state
+                if sid in disk_map and disk_map[sid].get('status') == 'stopped':
+                    if strat.get('status') == 'active':
+                        self.log("System", f"🛑 Detected external stop for {sid}. Updating in-memory state.", "warning")
+                        strat['status'] = 'stopped'
+                        strat['stop_reason'] = disk_map[sid].get('stop_reason', 'External Stop')
+                
+                # Now safe to update
+                disk_map[sid] = strat
             
             # Convert back to list
             final_list = list(disk_map.values())
@@ -243,56 +295,37 @@ class ExecutionEngine:
     def fetch_data(self, symbol, timeframe, limit=100, exchange_id=None):
         start_time = time.time()
         
-        # Priority chain for data feeds
-        fallback_chain = ['binance', 'bybit', 'okx', 'kraken', 'kucoin']
+        # Restricted to Binance Only as per user request
+        target_exchange = 'binance'
         
-        # If a specific exchange is requested, try it first, then follow the chain
-        if exchange_id:
-            if exchange_id in fallback_chain:
-                # Reorder chain to start with requested exchange
-                fallback_chain.remove(exchange_id)
-                fallback_chain.insert(0, exchange_id)
+        try:
+            adapter = self.get_adapter(target_exchange)
+            ohlcv = adapter.fetch_ohlcv(symbol, timeframe, limit=limit)
+            latency_ms = int((time.time() - start_time) * 1000)
+            
+            if ohlcv:
+                df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
+                
+                if not pd.api.types.is_datetime64_any_dtype(df['timestamp']):
+                    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
+                
+                # Update Feed Health (AFTER conversion)
+                self.update_feed_health(target_exchange, symbol, timeframe, latency_ms, df)
+                
+                return df
             else:
-                # Add to start of chain
-                fallback_chain.insert(0, exchange_id)
-
-        for target_exchange in fallback_chain:
-            try:
-                adapter = self.get_adapter(target_exchange)
-                ohlcv = adapter.fetch_ohlcv(symbol, timeframe, limit=limit)
-                latency_ms = int((time.time() - start_time) * 1000)
+                self.log("System", f"Binance returned no data for {symbol} {timeframe}", "warning")
+                return pd.DataFrame()
                 
-                if ohlcv:
-                    df = pd.DataFrame(ohlcv, columns=['timestamp', 'open', 'high', 'low', 'close', 'volume'])
-                    
-                    # Update Feed Health
-                    self.update_feed_health(target_exchange, symbol, timeframe, latency_ms, df)
-                    
-                    if not pd.api.types.is_datetime64_any_dtype(df['timestamp']):
-                        df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ms')
-                    return df
-                continue # Try next exchange in chain if no data
-            except Exception as e:
-                err_msg = str(e).lower()
-                is_timeout = 'timeout' in err_msg
-                is_restriction = '451' in err_msg or 'restricted' in err_msg or 'forbidden' in err_msg or 'not satisfied' in err_msg
-                
-                if is_restriction:
-                    self.log("Exchange", f"⚠️ {target_exchange} restricted/blocked in this region for {symbol}. Trying next...", "warning")
-                elif is_timeout:
-                    self.log("Exchange", f"⏱️ {target_exchange} timed out for {symbol}. Trying next...", "warning")
-                else:
-                    self.log("Exchange", f"❌ {target_exchange} failed for {symbol}: {err_msg}. Trying next...", "warning")
-                
-                continue # Try next exchange
-                
-        self.log("Exchange", f"🛑 All data feeds failed for {symbol} {timeframe} after exhausting fallback chain.", "error")
-        return None
+        except Exception as e:
+            self.log("System", f"Failed to fetch data from Binance for {symbol}: {str(e)}", "error")
+            return pd.DataFrame()
 
     def update_feed_health(self, exchange_id, symbol, timeframe, latency, df):
         try:
-            now = datetime.now()
-            last_candle_time = df['timestamp'].iloc[-1]
+            now = datetime.now(timezone.utc).replace(tzinfo=None)
+            raw_last_candle = df['timestamp'].iloc[-1]
+            last_candle_time = raw_last_candle
             
             # Convert to datetime if it's not (though it should be by now)
             if not isinstance(last_candle_time, datetime):
@@ -300,10 +333,16 @@ class ExecutionEngine:
                     last_candle_time = pd.to_datetime(last_candle_time, unit='ms')
                 else:
                     last_candle_time = pd.to_datetime(last_candle_time)
+            elif hasattr(last_candle_time, 'tzinfo') and last_candle_time.tzinfo is not None:
+                # Convert aware to naive UTC for consistent comparison
+                last_candle_time = last_candle_time.astimezone(timezone.utc).replace(tzinfo=None)
             
             # Calculate staleness
             staleness = (now - last_candle_time).total_seconds()
             
+            # DEBUG LOG
+            if staleness > 3600: # Log only if suspiciously stale
+                 print(f"DEBUG: Feed {exchange_id}|{symbol}|{timeframe} - Raw: {raw_last_candle} ({type(raw_last_candle)}), Converted: {last_candle_time}, Now: {now}, Staleness: {staleness}s")
             # Determine threshold: 2x timeframe or 5 mins, whichever is greater
             tf_seconds = 60
             if 'm' in timeframe: tf_seconds = int(timeframe.replace('m', '')) * 60
@@ -325,33 +364,30 @@ class ExecutionEngine:
                 "is_stale": is_stale
             }
             
-            if is_stale:
-                self.log("System", f"⚠️ DATA FEED STALE: {feed_key} is {int(staleness)}s behind!", "warning")
-            elif latency > 2000:
-                self.log("System", f"🐢 HIGH LATENCY: {feed_key} took {latency}ms", "warning")
+            # if is_stale:
+            #     self.log("System", f"⚠️ DATA FEED STALE: {feed_key} is {int(staleness)}s behind!", "warning")
+            # elif latency > 2000:
+            #     self.log("System", f"🐢 HIGH LATENCY: {feed_key} took {latency}ms", "warning")
                 
         except Exception as e:
             print(f"Error updating feed health: {e}")
 
     def is_feed_safe(self, exchange_id, symbol, timeframe):
-        """Check if the feed is stable enough for a NEW entry."""
+        """Check if the feed is stable enough for a NEW entry. (OVERRIDDEN: Always returns True for experimentation)"""
         feed_key = f"{exchange_id}|{symbol}|{timeframe}"
         health = self.feed_health.get(feed_key)
         
         if not health:
             return True # Assume safe if no data yet (first run)
             
-        if health.get('is_stale'):
-            self.log("Safety", f"Feed for {feed_key} is STALE ({health['staleness_sec']}s). Safety Interlock ACTIVE.", "warning")
-            return False
+        # if health.get('is_stale'):
+        #     self.log("Safety", f"Feed for {feed_key} is STALE ({health['staleness_sec']}s). OVERRIDE: Allowing entry anyway.", "warning")
             
-        if health.get('latency_ms', 0) > 5000:
-            self.log("Safety", f"Feed for {feed_key} has CRITICAL LATENCY ({health['latency_ms']}ms). Safety Interlock ACTIVE.", "warning")
-            return False
+        # if health.get('latency_ms', 0) > 5000:
+        #     self.log("Safety", f"Feed for {feed_key} has CRITICAL LATENCY ({health['latency_ms']}ms). OVERRIDE: Allowing entry anyway.", "warning")
             
-        if health.get('status') == 'unstable':
-            self.log("Safety", f"Feed for {feed_key} is UNSTABLE. Safety Interlock ACTIVE.", "warning")
-            return False
+        # if health.get('status') == 'unstable':
+        #     self.log("Safety", f"Feed for {feed_key} is UNSTABLE. OVERRIDE: Allowing entry anyway.", "warning")
             
         return True
 
@@ -437,11 +473,50 @@ class ExecutionEngine:
         is_paper = strategy.get('mode', 'paper') != 'live'
 
         if strategy_type == 'AI_AGENT':
-            ai_decision = self.ai_agent.analyze_market(symbol, strategy.get('timeframe', '1h'), df)
-            signal = ai_decision.get('action') 
-            reason_desc = f"AI: {ai_decision.get('reason')} (Conf: {ai_decision.get('confidence')}%)"
+            # AI RATE LIMITING & CACHING
+            # Don't query AI on every tick. Cache decision for 15 mins (or candle duration).
+            cache_key = f"{symbol}_{strategy.get('timeframe', '1h')}"
+            now = datetime.now()
+            cached = self.ai_analysis_cache.get(cache_key)
+            
+            ai_decision = None
+            
+            # Check Cache Validity (15 mins default)
+            if cached and (now - cached['timestamp']).total_seconds() < 900:
+                ai_decision = cached['decision']
+                # self.log("AI", f"Using cached decision for {cache_key}")
+            else:
+                # Refresh Analysis
+                try:
+                    self.log("AI", f"Analyzing Market Structure for {cache_key}...")
+                    ai_decision = self.ai_agent.analyze_market(symbol, strategy.get('timeframe', '1h'), df)
+                    
+                    # Update Cache
+                    self.ai_analysis_cache[cache_key] = {
+                        'timestamp': now,
+                        'decision': ai_decision
+                    }
+                except Exception as e:
+                    self.log("AI", f"Analysis Failed: {e}", "error")
+                    ai_decision = {"action": "HOLD", "reason": "AI Error"}
+
+            signal = ai_decision.get('action')
+            
+            # --- DYNAMIC AI PARAMETERS ---
+            # Override leverage with AI's suggestion
+            if 'leverage' in ai_decision:
+                leverage = int(ai_decision['leverage'])
+                strategy['leverage'] = leverage # Persist for this trade
+                
+            # Capture Dynamic Risk Levels
+            # We store them in 'ai_sl' and 'ai_tp' to be applied if entry happens
+            if signal != 'HOLD':
+                strategy['ai_sl'] = ai_decision.get('stop_loss_price')
+                strategy['ai_tp'] = ai_decision.get('take_profit_price')
+            
+            reason_desc = f"AI: {ai_decision.get('reason')} (Lev: {leverage}x, Conf: {ai_decision.get('confidence')}%)"
             if ai_decision.get('confidence', 0) < 75: signal = 'HOLD'
-            current_signals = {"ai_confidence": ai_decision.get('confidence')}
+            current_signals = {"ai_confidence": ai_decision.get('confidence'), "ai_leverage": leverage}
         else:
             # UNIFIED STRATEGY LOGIC CALL
             from strategy_logic import StrategyLogic
@@ -478,7 +553,7 @@ class ExecutionEngine:
                 exec_price = price * (1 - slippage_mult)
             
             if abs(exec_price - price) / price > 0.0001:
-                self.log("Safety", f"Applied {slippage_mult*100:.3f}% latency slippage to {sid}. Price: {price} -> {exec_price:.4f}", "info")
+                pass # self.log("Safety", f"Applied {slippage_mult*100:.3f}% latency slippage to {sid}. Price: {price} -> {exec_price:.4f}", "info")
 
         # PnL Calculation (Using adjusted price for realism)
         if current_pos:
@@ -494,15 +569,25 @@ class ExecutionEngine:
             strategy['unrealizedPnLPerc'] = pnl_perc
             
             # --- ADVANCED EXIT LOGIC (SL/TP) ---
-            # If current_sl/tp are not set, initialize them
-            if 'current_sl' not in strategy or strategy['current_sl'] is None:
+            # 1. AI AGENT PRIORITY: Use specific price levels if provided
+            if 'ai_sl' in strategy and strategy['ai_sl']:
+                 strategy['current_sl'] = float(strategy['ai_sl'])
+                 # Cleanup to avoid reusing old levels
+                 del strategy['ai_sl'] 
+                 self.log("Strategy", f"{sid} set AI Dynamic SL: {strategy['current_sl']}", "info")
+            elif 'current_sl' not in strategy or strategy['current_sl'] is None:
+                # Fallback to percentage
                 sl_perc = float(strategy.get('params', {}).get('stop_loss', 0.02))
                 if current_pos == 'long':
                     strategy['current_sl'] = entry_price * (1 - sl_perc)
                 else:
                     strategy['current_sl'] = entry_price * (1 + sl_perc)
             
-            if 'current_tp' not in strategy or strategy['current_tp'] is None:
+            if 'ai_tp' in strategy and strategy['ai_tp']:
+                 strategy['current_tp'] = float(strategy['ai_tp'])
+                 del strategy['ai_tp']
+                 self.log("Strategy", f"{sid} set AI Dynamic TP: {strategy['current_tp']}", "info")
+            elif 'current_tp' not in strategy or strategy['current_tp'] is None:
                 tp_perc = float(strategy.get('params', {}).get('take_profit', 0.05))
                 if current_pos == 'long':
                     strategy['current_tp'] = entry_price * (1 + tp_perc)
@@ -576,6 +661,15 @@ class ExecutionEngine:
 
             strategy['unrealizedPnL'] = (capital * (pnl_perc / 100)) * leverage
             strategy['unrealizedPnLPerc'] = pnl_perc * leverage
+            
+            # --- GLOBAL SAFETY KILL SWITCH ---
+            # If unrealized PnL (with leverage) drops below -5%, FORCE EXIT.
+            if strategy['unrealizedPnLPerc'] <= -5.0:
+                 self.log("Safety", f"🚫 KILL SWITCH TRIGGERED for {sid}: Loss {strategy['unrealizedPnLPerc']:.2f}% > 5%. Closing immediately.", "error")
+                 self.execute_trade_exit(strategy, symbol, 'SELL' if current_pos == 'long' else 'BUY', price, "Hard Stop (-5%)", strategy['unrealizedPnLPerc'])
+                 strategy['status'] = 'stopped' # Permanently disable
+                 strategy['stop_reason'] = 'Kill Switch Triggered'
+                 return
         else:
             strategy['unrealizedPnL'] = 0
             strategy['unrealizedPnLPerc'] = 0
@@ -590,11 +684,11 @@ class ExecutionEngine:
         order_success = False
         order_id = None
         
-        # SAFETY INTERLOCK: Block new entries if feed is degraded
+        # SAFETY INTERLOCK: Block new entries if feed is degraded (DISABLED BY USER REQUEST)
         if signal in ['BUY', 'SELL'] and current_pos is None:
             if not self.is_feed_safe(exchange_id, symbol, strategy.get('timeframe')):
-                self.log("Safety", f"BLOCKED entry signal for {sid} due to feed health protection.", "warning")
-                signal = 'HOLD' # Downgrade to HOLD to prevent entry
+                pass # self.log("Safety", f"Feed health check would block {sid}, but protection is DISABLED. Proceeding.", "warning")
+                # signal = 'HOLD' # Downgrade to HOLD to prevent entry
         
         # 1. LONG ENTRY
         if signal == 'BUY' and current_pos is None:
@@ -613,8 +707,31 @@ class ExecutionEngine:
                 if order_success:
                     strategy['position'] = 'long'
                     strategy['entry_price'] = exec_price
-                    self.log("Strategy", f"{sid} entered LONG at {exec_price:.4f} (Market: {price})", "success")
-                    self.log_trade(strategy['strategyId'], symbol, "BUY", exec_price, reason=reason_desc, leverage=leverage, timeframe=strategy.get('timeframe'), entry_price=exec_price, capital=strategy.get('capital'), signals=current_signals, exchange=exchange_id, instance_id=sid)
+                    
+                    # INITIALIZE SL/TP ON ENTRY
+                    # Check for AI overrides first (if passed via signals or strategy state)
+                    if 'ai_sl' in strategy:
+                        strategy['current_sl'] = float(strategy['ai_sl'])
+                        del strategy['ai_sl']
+                    else:
+                        sl_perc = float(strategy.get('params', {}).get('stop_loss', 0.02))
+                        strategy['current_sl'] = exec_price * (1 - sl_perc)
+
+                    if 'ai_tp' in strategy:
+                        strategy['current_tp'] = float(strategy['ai_tp'])
+                        del strategy['ai_tp']
+                    else:
+                        tp_perc = float(strategy.get('params', {}).get('take_profit', 0.05))
+                        strategy['current_tp'] = exec_price * (1 + tp_perc)
+
+                    self.log("Strategy", f"{sid} entered LONG at {exec_price:.4f} (SL: {strategy['current_sl']:.2f}, TP: {strategy['current_tp']:.2f})", "success")
+                    self.log_trade(
+                        strategy['strategyId'], symbol, "BUY", exec_price, 
+                        reason=reason_desc, leverage=leverage, timeframe=strategy.get('timeframe'), 
+                        entry_price=exec_price, capital=strategy.get('capital'), signals=current_signals, 
+                        exchange=exchange_id, instance_id=sid,
+                        current_sl=strategy.get('current_sl'), current_tp=strategy.get('current_tp')
+                    )
             except Exception as e:
                 self.log("Execution", f"Order failed on {exchange_id}: {e}", "error")
 
@@ -635,8 +752,30 @@ class ExecutionEngine:
                 if order_success:
                     strategy['position'] = 'short'
                     strategy['entry_price'] = exec_price
-                    self.log("Strategy", f"{sid} entered SHORT at {exec_price:.4f} (Market: {price})", "success")
-                    self.log_trade(strategy['strategyId'], symbol, "SELL", exec_price, reason=reason_desc, leverage=leverage, timeframe=strategy.get('timeframe'), entry_price=exec_price, capital=strategy.get('capital'), signals=current_signals, exchange=exchange_id, instance_id=sid)
+                    
+                    # INITIALIZE SL/TP ON ENTRY
+                    if 'ai_sl' in strategy:
+                        strategy['current_sl'] = float(strategy['ai_sl'])
+                        del strategy['ai_sl']
+                    else:
+                        sl_perc = float(strategy.get('params', {}).get('stop_loss', 0.02))
+                        strategy['current_sl'] = exec_price * (1 + sl_perc)
+
+                    if 'ai_tp' in strategy:
+                        strategy['current_tp'] = float(strategy['ai_tp'])
+                        del strategy['ai_tp']
+                    else:
+                        tp_perc = float(strategy.get('params', {}).get('take_profit', 0.05))
+                        strategy['current_tp'] = exec_price * (1 - tp_perc)
+
+                    self.log("Strategy", f"{sid} entered SHORT at {exec_price:.4f} (SL: {strategy['current_sl']:.2f}, TP: {strategy['current_tp']:.2f})", "success")
+                    self.log_trade(
+                        strategy['strategyId'], symbol, "SELL", exec_price, 
+                        reason=reason_desc, leverage=leverage, timeframe=strategy.get('timeframe'), 
+                        entry_price=exec_price, capital=strategy.get('capital'), signals=current_signals, 
+                        exchange=exchange_id, instance_id=sid,
+                        current_sl=strategy.get('current_sl'), current_tp=strategy.get('current_tp')
+                    )
             except Exception as e:
                 self.log("Execution", f"Order failed on {exchange_id}: {e}", "error")
 
@@ -688,7 +827,12 @@ class ExecutionEngine:
         exchange_id = strategy.get('exchange', 'binance').lower()
 
         try:
-            # 1. Update State
+            # 1. Capture Final State BEFORE Reset
+            final_sl = strategy.get('current_sl')
+            final_tp = strategy.get('current_tp')
+            final_trailing = strategy.get('trailing_sl')
+
+            # 2. Update Stats
             realized_pnl = (capital * (pnl_perc / 100)) * leverage
             strategy['trades'] = (strategy.get('trades', 0) or 0) + 1
             strategy['pnl'] = (strategy.get('pnl', 0) or 0) + realized_pnl
@@ -704,14 +848,15 @@ class ExecutionEngine:
             strategy['highest_price'] = 0
             strategy['lowest_price'] = 0
 
-            # 2. Log Trade
+            # 3. Log Trade
             self.log("Strategy", f"{sid} closed {symbol} at {price} ({reason})", "success")
             self.log_trade(
                 strategy['strategyId'], symbol, side, price, 
                 pnl_perc=pnl_perc * leverage, reason=reason, 
                 leverage=leverage, timeframe=strategy.get('timeframe'), 
                 entry_price=entry_price, capital=capital, 
-                exchange=exchange_id, instance_id=sid
+                exchange=exchange_id, instance_id=sid,
+                current_sl=final_sl, current_tp=final_tp, trailing_sl=final_trailing
             )
 
             # 3. Cooldown on Loss
@@ -732,7 +877,9 @@ class ExecutionEngine:
             }
             
             exchanges_to_fetch = set(s.get('exchange', 'binance').lower() for s in self.strategies if s.get('mode') == 'live')
-            if os.getenv('COINDCX_API_KEY'): exchanges_to_fetch.add('coindcx')
+            # HARD DISABLE: Never fetch CoinDCX balance (User Request)
+            if 'coindcx' in exchanges_to_fetch:
+                exchanges_to_fetch.remove('coindcx')
 
             for ex_id in exchanges_to_fetch:
                 # Retry Logic for Balance
@@ -824,6 +971,98 @@ class ExecutionEngine:
         else:
             self.log("System", "Reconciliation complete. No bad trades found.", "info")
 
+    def process_commands(self):
+        """Check for external commands (Reset, Stop, etc) to avoid race conditions"""
+        if not os.path.exists(COMMANDS_FILE): return
+
+        try:
+            with open(COMMANDS_FILE, 'r') as f:
+                commands = []
+                try:
+                    data = json.load(f)
+                    commands = data.get('commands', [])
+                except:
+                    pass
+            
+            if not commands: return
+
+            self.log("System", f"🔎 Found {len(commands)} commands in {COMMANDS_FILE}", "warning")
+            processed_count = 0
+            for cmd in commands:
+                cmd_type = cmd.get('type')
+                
+                if cmd_type == 'RESET_ALL':
+                    self.log("System", "🔄 COMMAND: Executing Global PnL Reset...", "warning")
+                    for s in self.strategies:
+                        s['pnl'] = 0
+                        s['pnlPerc'] = 0
+                        s['unrealizedPnL'] = 0
+                        s['unrealizedPnLPerc'] = 0
+                        s['trades'] = 0
+                        s['wins'] = 0
+                        s['winRate'] = 0
+                        s['position'] = None
+                        s['current_sl'] = None
+                        s['current_tp'] = None
+                        s['highest_price'] = 0
+                        s['lowest_price'] = 0
+                        # Ensure status is active so engine picks it up
+                        if s.get('status') == 'Running': s['status'] = 'active'
+                        
+                        # Clear History locally (efficiency)
+                        # Actually for RESET ALL, we should just wipe the file ONCE at the end
+                        
+                    self.clear_all_trade_history()
+                    processed_count += 1
+
+                elif cmd_type == 'RESET_INSTANCE':
+                    target_id = cmd.get('instanceId')
+                    self.log("System", f"🔄 COMMAND: Resetting instance {target_id}...", "info")
+                    for s in self.strategies:
+                        if s.get('id') == target_id:
+                            s['pnl'] = 0
+                            s['pnlPerc'] = 0
+                            s['unrealizedPnL'] = 0
+                            s['unrealizedPnLPerc'] = 0
+                            s['trades'] = 0
+                            s['wins'] = 0
+                            s['winRate'] = 0
+                            s['position'] = None
+                            s['current_sl'] = None
+                            s['current_tp'] = None
+                            s['highest_price'] = 0
+                            s['lowest_price'] = 0
+                            
+                            # Ensure status is active
+                            if s.get('status') == 'Running': s['status'] = 'active'
+                            
+                            # Clear History
+                            self.clear_trade_history(target_id)
+                            
+                            processed_count += 1
+                            processed_count += 1
+                            break
+
+                elif cmd_type == 'STOP_ALL':
+                    self.log("System", "🛑 COMMAND: Stopping ALL strategies...", "warning")
+                    # Clear the strategies list in memory
+                    self.strategies = []
+                    # Also wipe the file immediately to prevent reload on restart
+                    with open(STRATEGIES_FILE, 'w') as f:
+                        json.dump([], f, indent=2)
+                    processed_count += 1
+            
+            # clear commands after processing
+            with open(COMMANDS_FILE, 'w') as f:
+                json.dump({"commands": []}, f)
+            
+            if processed_count > 0:
+                self.save_strategies() # Persist immediately
+                self.log("System", f"✅ Processed {processed_count} external commands.", "success")
+
+        except Exception as e:
+            self.log("System", f"Failed to process commands: {e}", "error")
+
     def run(self):
         self.log("System", "Engine Loop Starting. Performing initial reconciliation...", "info")
         # --- RECONCILIATION ON STARTUP ---
@@ -838,6 +1077,10 @@ class ExecutionEngine:
                 
                 # 1. Load Strategies
                 self.load_strategies()
+                
+                # 1b. Process External Commands (Priority)
+                self.process_commands()
+                
                 
                 # 2. Update Balance (Non-blocking failure)
                 try:

@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/nikhildhawan/Documents/synaptic/Algocrypto/Cloned algo/cryptoapp/force_reset.py", line 3, in <module>
+    import psutil
+ModuleNotFoundError: No module named 'psutil'

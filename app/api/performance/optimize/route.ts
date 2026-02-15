@@ -58,6 +58,12 @@ export async function POST(request: Request) {
         const venvPython = path.join(process.cwd(), '.venv', 'bin', 'python3');
         const pythonPath = fs.existsSync(venvPython) ? venvPython : 'python3';
         const resultsPath = path.join(process.cwd(), 'backend', 'data', 'shortlisted_strategies.json');
+        const killFile = path.join(process.cwd(), 'KILL_OPTIMIZER');
+
+        // Cleanup kill file from previous runs
+        if (fs.existsSync(killFile)) {
+            try { fs.unlinkSync(killFile); } catch (e) { }
+        }
 
         console.log(`[Optimizer] Starting optimization in mode: ${mode}`);
         console.log(`[Optimizer] Using script: ${scriptPath}`);
@@ -72,7 +78,12 @@ export async function POST(request: Request) {
 
         const gens = body.generations || 2;
         const pop = body.populationSize || 4;
-        const lev = body.leverage || 5;
+
+        // Support new range or default to 3-10 (User Preferred)
+        const minLev = body.minLeverage || 3;
+        const maxLev = body.maxLeverage || 10;
+        const days = body.days || 365;
+
         const symbols = body.symbols && Array.isArray(body.symbols) ? body.symbols.join(',') : null;
         const tfs = body.timeframes && Array.isArray(body.timeframes) ? body.timeframes.join(',') : null;
 
@@ -83,7 +94,9 @@ export async function POST(request: Request) {
             '--mode', mode,
             '--gens', gens.toString(),
             '--pop', pop.toString(),
-            '--lev', lev.toString()
+            '--min-lev', minLev.toString(),
+            '--max-lev', maxLev.toString(),
+            '--days', days.toString()
         ];
 
         if (symbols) args.push('--symbols', symbols);
@@ -133,6 +146,11 @@ export async function DELETE() {
             if (status.status === 'running' && status.pid) {
                 try {
                     process.kill(status.pid, 'SIGTERM'); // Try graceful first
+
+                    // Write kill file as backup for the python script loop
+                    const killFile = path.join(process.cwd(), 'KILL_OPTIMIZER');
+                    try { fs.writeFileSync(killFile, 'STOP'); } catch (e) { }
+
                     appendLog(`Stopped Optimization Engine (PID: ${status.pid})`, "warning");
 
                     // Allow time for cleanup or force kill if needed

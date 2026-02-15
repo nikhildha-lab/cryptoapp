@@ -13,6 +13,15 @@ MODEL_PATH = os.path.join(BASE_DIR, 'models/alphaxgb_weights.json')
 def train_alphaxgb():
     print(f"[{datetime.now().isoformat()}] 🧠 AlphaXGB: Starting Continuous Learning Cycle...")
     
+    EXCLUSION_PATH = os.path.join(BASE_DIR, '../data/excluded_strategies.json')
+    exclusions = []
+    if os.path.exists(EXCLUSION_PATH):
+        try:
+            with open(EXCLUSION_PATH, 'r') as f:
+                exclusions = json.load(f)
+        except:
+            pass
+    
     if not os.path.exists(HISTORY_PATH):
         print("❌ AlphaXGB: No trade history found. Skipping training.")
         return
@@ -59,6 +68,8 @@ def train_alphaxgb():
         for i, row in stats.iterrows():
             if row['timeframe'] in ['15m', '30m']:
                 stats.at[i, 'alpha_score'] = -100.0
+            if row['strategyId'] in exclusions:
+                stats.at[i, 'alpha_score'] = -999.0 # HARD EXCLUSION
             if row['strategyId'] == 'mean-reversion-pro' and row['symbol'] in ['SOL/USDT', 'LINK/USDT']:
                 stats.at[i, 'alpha_score'] = -100.0
 
