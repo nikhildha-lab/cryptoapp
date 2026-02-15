@@ -21962,3 +21962,1893 @@ violations {
 }
 ]
 [ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (34.09)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (38.22)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 56.374730966s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 56
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (34.09)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (38.22)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 46.874908541s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 46
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (35.92)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (39.85)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 37.616316401s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 37
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (35.92)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (39.85)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 27.935465817s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 27
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (36.27)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (39.95)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 18.21957334s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 18
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (36.27)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (39.96)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 8.927630851s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 8
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (36.27)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (40.34)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 59.102581626s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 59
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (36.94)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (41.38)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 49.557329701s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 49
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (37.17)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (41.57)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 40.042368945s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 40
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (37.91)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (42.19)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 30.497682924s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 30
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (37.91)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (42.19)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 21.236941943s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 21
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (37.05)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (41.09)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 11.711586151s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 11
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (37.05)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (41.09)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 1.963130443s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 1
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (36.72)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (40.83)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 52.302076974s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 52
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (36.72)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (40.84)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 42.99197433s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 42
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (36.72)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (39.79)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 32.946605741s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 32
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (36.72)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (40.78)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 22.786277048s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 22
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (36.58)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (40.78)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 13.154697979s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 13
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (37.05)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (41.78)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 3.615564167s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 3
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (37.05)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (41.78)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 54.166876382s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 54
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (40.15)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (44.84)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 44.421968971s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 44
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (40.15)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (44.85)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 34.761052045s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 34
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (40.16)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (45.51)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 25.196069212s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 25
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (40.16)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (44.58)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 15.523727448s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 15
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (40.16)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (44.20)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 5.695581114s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 5
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (40.16)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (44.18)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 56.242290918s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 56
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (39.49)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (43.92)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+Please retry in 46.644722108s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 46
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (39.05)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (43.92)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 36.846890114s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 36
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (38.57)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (43.88)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 27.755060958s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 27
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
+[INFO] System: Fetching 1h data for ADA/USDT on binance...
+[INFO] Strategy: TC-8781 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 4h data for AVAX/USDT on binance...
+[INFO] Strategy: TC-A7D9 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 1d data for DOT/USDT on binance...
+[INFO] Strategy: TM-F75A Checked: HOLD | Trend Weak
+[INFO] Strategy: TC-7535 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 5m data for AVAX/USDT on binance...
+[INFO] Strategy: TC-3538 Checked: HOLD | Conditions not met
+[INFO] System: Fetching 15m data for BTC/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (38.57)
+[INFO] System: Fetching 15m data for ETH/USDT on binance...
+[INFO] Strategy: ai-agent-pro Checked: HOLD | RSI Neutral (43.86)
+[INFO] System: Fetching 3m data for BTC/USDT on binance...
+LLM Query Failed: 429 You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. 
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_input_token_count, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+* Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash
+Please retry in 18.12166351s. [links {
+  description: "Learn more about Gemini API quotas"
+  url: "https://ai.google.dev/gemini-api/docs/rate-limits"
+}
+, violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_input_token_count"
+  quota_id: "GenerateContentInputTokensPerModelPerMinute-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerMinutePerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+violations {
+  quota_metric: "generativelanguage.googleapis.com/generate_content_free_tier_requests"
+  quota_id: "GenerateRequestsPerDayPerProjectPerModel-FreeTier"
+  quota_dimensions {
+    key: "model"
+    value: "gemini-2.0-flash"
+  }
+  quota_dimensions {
+    key: "location"
+    value: "global"
+  }
+}
+, retry_delay {
+  seconds: 18
+}
+]
+[ERROR] System: Critical Error in Engine Loop: AI Provider not configured. Set AI_API_KEY in .env.local
